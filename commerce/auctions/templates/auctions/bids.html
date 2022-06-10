@@ -1,0 +1,73 @@
+{% extends "auctions/layout.html" %}
+
+
+{% block body %}
+<div class="container-fluid p-5">
+    <h1>Your Bids</h1>
+    <hr>
+    <h2> Ongoing Auctions </h2>
+    <hr>
+    <table class="table table-responsive-sm table-striped">
+        <thead class="thead-dark">
+            <tr>
+                <th scope="col">Product Image</th>
+                <th scope="col">Listing</th>
+                <th scope="col">Listed Price</th>
+                <th scope="col">Your Bid</th>
+                <th scope="col">Current Price</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for bid in activeBids%}
+            {% if bid.listing.getCurrentPrice > bid.price %}
+            <tr class="table-warning">
+                {% else %}
+            <tr class="table">
+                {% endif %}
+                <td><img src="{{ bid.listing.image }}" width="100px"></td>
+                <td><a href="{% url 'listing' bid.listing.title%}" style="color: #2E2E2E">{{ bid.listing }}</a></td>
+                <td>${{ bid.listing.startBid }}</td>
+                <td>${{ bid.price }}</td>
+                <td>${{ bid.listing.getCurrentPrice }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <h2 class="mt-5"> Past Auctions </h2>
+    <hr>
+    <table class="table table-responsive-md">
+        <thead class="thead-dark">
+            <tr>
+                <th scope="col">Product Image</th>
+                <th scope="col">Listing</th>
+                <th scope="col">Listed By</th>
+                <th scope="col">Bid Status</th>
+                <th scope="col">Listed Price</th>
+                <th scope="col">Your Bid</th>
+                <th scope="col">Winning Bid</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for bid in closedBids%}
+            {% if bid.listing.getWinner == request.user %}
+            <tr class="table-success">
+                {% else %}
+            <tr class="table-danger">
+                {% endif %}
+                <td><img src="{{ bid.listing.image }}" width="100px"></td>
+                <td>{{ bid.listing }}</td>
+                <td>{{ bid.listing.listedBy }}</td>
+                {% if bid.listing.getWinner == request.user %}
+                <td><strong>Congratulations you've placed the Winning Bid!</strong></td>
+                {% else %}
+                <td>Auction has been ended by the Owner</td>
+                {% endif %}
+                <td>${{ bid.listing.startBid }}</td>
+                <td>${{ bid.price }}</td>
+                <td>${{ bid.listing.getCurrentPrice }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

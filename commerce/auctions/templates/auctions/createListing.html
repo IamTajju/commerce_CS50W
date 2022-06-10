@@ -1,0 +1,26 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+<h2 class="px-5 py-4">Create New Listing</h2>
+{% if successMessage %}
+<div class="container-fluid p-5">
+    <div class="alert alert-success" role="alert">
+        {{ successMessage }}
+    </div>
+</div>
+{% endif %}
+{% if failMessage %}
+<div class="container-fluid p-5">
+    <div class="alert alert-danger" role="alert">
+        {{ failMessage }}
+    </div>
+</div>
+{% endif %}
+<div class="d-flex px-5 pb-5 justify-content-center align-items-center">
+    <form action="{% url 'createListing' %}" method="post" class="form-group flex-grow-1">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <input type="submit" class="btn btn-info rounded">
+    </form>
+</div>
+{% endblock %}

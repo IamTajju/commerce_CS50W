@@ -1,0 +1,33 @@
+{% extends "auctions/layout.html" %}
+{% block body %}
+<div class="container-fluid p-5">
+    <hr>
+    <h3 class="mt-5">Similar Products</h3>
+    <div class="row my-2">
+        {% for item in listings %}
+        {% if item.active == True %}
+        {% if item != listing %}
+        <div class="col-6 col-xl-4 card shadow p-5 mt-5 mx-1 justify-content-start">
+            <div class="row align-items-center">
+                <div class="col">
+                    <h4>{{ item.title }}</h4>
+                    <p>Price: ${{item.getCurrentPrice}}</p>
+                    <a class="btn btn-outline-dark rounded-pill my-1" href="{% url 'listing' item.title %}">Listing
+                        Details</a>
+                </div>
+                <div class="col-auto ">
+                    <img src="{{ item.image }}" width="150">
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        {% endif %}
+        {% endfor %}
+        {% if listings|length == 0 %}
+        <div class="alert alert-danger" role="alert">
+            No listing matches the query
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
