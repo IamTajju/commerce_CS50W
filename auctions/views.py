@@ -12,15 +12,20 @@ from datetime import date
 
 
 # Homepage
-def index(request):
+def index(request, category=None):
     bidForm = BidForm()
-    listings = Listing.objects.filter(active=True)
+    
+    if category:
+        listings = Listing.objects.filter(category=category).filter(active=True)
+    else:
+        listings = Listing.objects.filter(active=True)
 
     return render(request, "auctions/index.html", {
         "listings": listings,
         "bidForm": bidForm,
         "user": request.user,
-        "categories": getAllCategories()
+        "categories": getAllCategories(),
+        "categoryName": dict(Listing.Category.choices).get(category, '')
     }
     )
 
@@ -80,25 +85,6 @@ def viewListingDetails(request, title):
         "Comments": getComments(listing),
     }
     )
-
-
-# Category-wise Listing Page
-def viewCategoryListings(request, category):
-    bidForm = BidForm()
-    listings = Listing.objects.filter(category=category).filter(active=True)
-    # Get list of all categories to load in the navbar
-    categories = getAllCategories()
-    categoryName = [x[1] for x in categories if category in x]
-
-    return render(request, "auctions/index.html", {
-        "listings": listings,
-        "bidForm": bidForm,
-        "user": request.user,
-        "categories": categories,
-        "categoryName": categoryName[0]
-    }
-    )
-
 
 # Adds Listing to Watchlist and returns to Listing Details Page
 @login_required(login_url="/login")
@@ -236,22 +222,20 @@ def login_view(request):
 # Searches keyword to find matching Listings
 def search(request):
     if request.method == "POST":
-        titleForm = SearchForm(request.POST)
-        if titleForm.is_valid():
-            titleForm = titleForm.cleaned_data
-            listings = Listing.objects.filter(
-                title__contains=titleForm['title'])
+        title = request.POST.get('title', '')
+        listings = Listing.objects.filter(
+            title__contains=title)
 
-            # If only one Listing matches redirects to that Listings page
-            if len(listings) == 1:
-                return viewListingDetails(request, listings[0].title)
+        # If only one Listing matches redirects to that Listings page
+        if len(listings) == 1:
+            return viewListingDetails(request, listings[0].title)
 
-            # Else renders a page with Listings that contain search keyword
-            else:
-                return render(request, "auctions/searchResult.html", {
-                    "listings": listings,
-                    "categories": getAllCategories()
-                })
+        # Else renders a page with Listings that contain search keyword
+        else:
+            return render(request, "auctions/searchResult.html", {
+                "listings": listings,
+                "categories": getAllCategories()
+            })
 
     # If there's an issue redirect to Home
     return HttpResponseRedirect(reverse("index"))

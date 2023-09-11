@@ -4,7 +4,7 @@ from .models import Listing, Comment
 
 
 def getAllCategories():
-    return list(Listing.objects.first().categories)
+    return list(Listing.Category.choices)
 
 
 def getComments(Listing):

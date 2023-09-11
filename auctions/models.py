@@ -1,8 +1,6 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-from django.db.models.base import Model
-from django.db.models.deletion import CASCADE, SET_NULL
-from django.db.models.fields import URLField
+from django.utils.translation import gettext_lazy as _
 
 
 class User(AbstractUser):
@@ -19,14 +17,16 @@ class Listing(models.Model):
     image = models.URLField(blank=True)
     listedBy = models.ForeignKey(
         User, on_delete=models.CASCADE)
-    categories = (
-        ('F', 'Fashion'),
-        ('T', 'Toys'),
-        ('E', 'Electronics'),
-        ('H', 'Home')
-    )
+    
+    class Category(models.TextChoices):
+        FASHION = 'F', _('Fashion')
+        TOYS = 'T', _('Toys')
+        ELECTRONICS = 'E', _('Electronics')
+        HOME = 'H', _('Home')
+
     category = models.CharField(
-        max_length=1, choices=categories, null=True, blank=True)
+        max_length=250, choices=Category.choices, null=True, blank=True)
+    
     active = models.BooleanField(default=True)
 
     def __str__(self):

@@ -30,10 +30,6 @@ class BidForm(ModelForm):
         }
 
 
-class SearchForm(forms.Form):
-    title = forms.CharField()
-
-
 class CommentForm(ModelForm):
     class Meta:
         model = Comment

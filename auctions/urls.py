@@ -8,7 +8,6 @@ urlpatterns = [
     path("logout", views.logout_view, name="logout"),
     path("listing/<str:title>", views.viewListingDetails, name="listing"),
     path("register", views.register, name="register"),
-    path("categories/<category>", views.viewCategoryListings, name="categories"),
     path("addToWatchlist/<str:title>",
          views.addToWatchlist, name="addToWatchlist"),
     path("watchlist", views.getWatchlist, name="watchlist"),
@@ -17,5 +16,6 @@ urlpatterns = [
     path("closeListing/<str:title>", views.closeListing, name="close"),
     path("userBids", views.userBids, name="userBids"),
     path("search", views.search, name="search"),
-    path("comment/<str:title>", views.comment, name="comment")
+    path("comment/<str:title>", views.comment, name="comment"),
+    path("<str:category>", views.index, name="categories"),
 ]
