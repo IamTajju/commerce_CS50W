@@ -1,13 +1,6 @@
-from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils.translation import gettext_lazy as _
-
-
-class User(AbstractUser):
-    watchlist = models.ManyToManyField('Listing', null=True, blank=True)
-
-    def __str__(self):
-        return f"{self.username}"
+from users.models import User
 
 
 class Listing(models.Model):
@@ -17,7 +10,7 @@ class Listing(models.Model):
     image = models.URLField(blank=True)
     listedBy = models.ForeignKey(
         User, on_delete=models.CASCADE)
-    
+
     class Category(models.TextChoices):
         FASHION = 'F', _('Fashion')
         TOYS = 'T', _('Toys')
@@ -26,7 +19,7 @@ class Listing(models.Model):
 
     category = models.CharField(
         max_length=250, choices=Category.choices, null=True, blank=True)
-    
+
     active = models.BooleanField(default=True)
 
     def __str__(self):

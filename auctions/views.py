@@ -1,8 +1,6 @@
 from typing import List
-from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
-from django.db import IntegrityError
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, HttpResponseBadRequest
 from django.shortcuts import render
 from django.urls import reverse
 from .models import *
@@ -14,9 +12,10 @@ from datetime import date
 # Homepage
 def index(request, category=None):
     bidForm = BidForm()
-    
+
     if category:
-        listings = Listing.objects.filter(category=category).filter(active=True)
+        listings = Listing.objects.filter(
+            category=category).filter(active=True)
     else:
         listings = Listing.objects.filter(active=True)
 
@@ -87,6 +86,8 @@ def viewListingDetails(request, title):
     )
 
 # Adds Listing to Watchlist and returns to Listing Details Page
+
+
 @login_required(login_url="/login")
 def addToWatchlist(request, title):
     user = User.objects.get(username=request.user)
@@ -198,85 +199,28 @@ def userBids(request):
     })
 
 
-# Login Page
-def login_view(request):
-    if request.method == "POST":
-
-        # Attempt to sign user in
-        username = request.POST["username"]
-        password = request.POST["password"]
-        user = authenticate(request, username=username, password=password)
-
-        # Check if authentication successful
-        if user is not None:
-            login(request, user)
-            return HttpResponseRedirect(reverse("index"))
-        else:
-            return render(request, "auctions/login.html", {
-                "message": "Invalid username and/or password."
-            })
-    else:
-        return render(request, "auctions/login.html")
-
-
-# Searches keyword to find matching Listings
 def search(request):
     if request.method == "POST":
         title = request.POST.get('title', '')
-        listings = Listing.objects.filter(
-            title__contains=title)
+        listings = Listing.objects.filter(title__contains=title)
 
-        # If only one Listing matches redirects to that Listings page
-        if len(listings) == 1:
-            return viewListingDetails(request, listings[0].title)
+        # If only one Listing matches, redirect to that Listing's page
+        if listings.count() == 1:
+            listing = listings.first()
+            return HttpResponseRedirect(reverse('listing', args=[listing.title]))
 
-        # Else renders a page with Listings that contain search keyword
+        # Otherwise, render a page with Listings that contain the search keyword
         else:
             return render(request, "auctions/searchResult.html", {
                 "listings": listings,
                 "categories": getAllCategories()
             })
 
-    # If there's an issue redirect to Home
+    # If there's an issue, redirect to the Home page
     return HttpResponseRedirect(reverse("index"))
 
-
-# Logs out
-def logout_view(request):
-    logout(request)
-    return HttpResponseRedirect(reverse("index"))
-
-
-# Register Page
-def register(request):
-    if request.method == "POST":
-        username = request.POST["username"]
-        email = request.POST["email"]
-
-        # Ensure password matches confirmation
-        password = request.POST["password"]
-        confirmation = request.POST["confirmation"]
-        if password != confirmation:
-            return render(request, "auctions/register.html", {
-                "message": "Passwords must match."
-            })
-
-        # Attempt to create new user
-        try:
-            user = User.objects.create_user(username, email, password)
-            user.save()
-        except IntegrityError:
-            return render(request, "auctions/register.html", {
-                "message": "Username already taken."
-            })
-        login(request, user)
-        return HttpResponseRedirect(reverse("index"))
-    else:
-        return render(request, "auctions/register.html")
 
 # Place comment on Listing Details page
-
-
 @login_required(login_url="/login")
 def comment(request, title):
     if request.method == "POST":
