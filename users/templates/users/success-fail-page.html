@@ -1,0 +1,18 @@
+{% extends "users/layout.html" %}
+
+{% block body %}
+<h2 style="text-align: center;">{{title}}</h2>
+<div class="{% if success %}alert alert-success {% else %} alert alert-danger {% endif %} text-center my-3">
+    <p>{{message}}</p>
+</div>
+{% if success %}
+<center>
+    <a class="btn btn-primary" href="{% url 'index' %}">Go to Home</a>
+</center>
+{% else %}
+<center>
+    <a class="btn btn-primary" href="{% url 'register' %}">Registration Page</a>
+</center>
+{% endif %}
+<hr>
+{% endblock %}

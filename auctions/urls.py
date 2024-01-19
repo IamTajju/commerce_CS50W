@@ -4,9 +4,13 @@ from . import views
 
 urlpatterns = [
     path("", views.index, name="index"),
-    path("listing/<str:title>", views.viewListingDetails, name="listing"),
-    path("addToWatchlist/<str:title>",
-         views.addToWatchlist, name="addToWatchlist"),
+    path("filter/", views.index, name='filter'),
+    path("listing/<str:title>", views.view_listing, name="view-listing"),
+    path("listing/<str:title>/bid/", views.view_listing,
+         name="view-listing-with-bid-form"),
+    path("place-bid/<str:title>", views.place_bid, name="place-bid"),
+    path("add-to-watchlist/<str:title>",
+         views.add_to_watch_list, name="add-to-watchlist"),
     path("watchlist", views.getWatchlist, name="watchlist"),
     path("createListing", views.createListing, name="createListing"),
     path("bid/<str:title>", views.bids, name="bid"),
@@ -14,5 +18,4 @@ urlpatterns = [
     path("userBids", views.userBids, name="userBids"),
     path("search", views.search, name="search"),
     path("comment/<str:title>", views.comment, name="comment"),
-    path("<str:category>", views.index, name="categories"),
 ]

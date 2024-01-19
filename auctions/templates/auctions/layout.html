@@ -5,73 +5,79 @@
 
 <head>
     <title>{% block title %}Auctions{% endblock %}</title>
+    <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
-        integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+
     <link href="{% static 'auctions/styles.css' %}" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
     <script src="https://kit.fontawesome.com/7b81a4c80c.js" crossorigin="anonymous"></script>
 </head>
 
 <body>
-    <nav class="navbar navbar-expand-lg sticky-top navbar-dark shadow-lg p-3" style="background-color:cadetblue;">
-        <a class="navbar-brand" href="{% url 'index' %}">Auctions</a>
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
-            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-
-        <div class="collapse navbar-collapse" id="navbarSupportedContent">
-            <ul class="navbar-nav mr-auto">
-                {% if user.is_authenticated %}
-                <li class="nav-item active">
-                    <a class="nav-link" href="{% url 'userBids' %}">Bids</a>
-                </li>
-                <li class="nav-item active">
-                    <a class="nav-link" href="{% url 'watchlist' %}">Watchlist</a>
-                </li>
-                {% endif %}
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" id="navbarDropdown" role="button" data-toggle="dropdown"
-                        aria-haspopup="true" aria-expanded="false">
-                        Categories
+    <nav class="navbar navbar-expand-lg sticky-top bg-background-tertiary" style="background-color: var(--nav);">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{% url 'index' %}">Auctions</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
+                aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    {% if user.is_authenticated %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'userBids' %}">Bids</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'watchlist' %}">Watchlist</a>
+                    </li>
+                    {% endif %}
+                </ul>
+                <form class="d-flex w-50 me-auto my-2 form-control p-0" role="search" action="{% url 'search' %}"
+                    menthod="POST">
+                    {% csrf_token%}
+                    <button type="submit" style="background-color: var(--custom-secondary); border-width: 0px;"
+                        class="text-white rounded-start px-2"><i class="bi bi-search"></i>
+                    </button>
+                    <input class="form-control w-100 ms-0" type="search" placeholder="Search" aria-label="Search"
+                        style="border-width: 0px;">
+                </form>
+                <div class="float-lg-end float-start">
+                    <a class="btn btn-secondary btn-sm mt-1" href="{% url 'createListing' %}"><i
+                            class="bi bi-bag-plus-fill"></i>
+                        Create Listing</a>
+                    {% if user.is_authenticated %}
+                    <a class="btn btn-secondary btn-sm mt-1" href="{% url 'logout' %}"><i
+                            class="bi bi-box-arrow-left"></i>
+                        Logout</a>
+                    {% else %}
+                    <a class="btn btn-secondary btn-sm mt-1" href="{% url 'login' %}"><i
+                            class="bi bi-box-arrow-in-right"></i> Login</a>
+                    <a class="btn btn-secondary btn-sm mt-1" href="{% url 'register' %}"><i
+                            class="bi bi-person-plus-fill"></i> Register</a>
+                    {% endif %}
+                    {% if user.is_authenticated %}
+                    <a class="ms-2 ali float-end" href="{% url 'profile' %}">
+                        <div style="width: 40px; height: 40px; overflow: hidden; border-radius: 50%;">
+                            <img src="{{user.display_picture.url}}"
+                                style="height:100%; width: 100%; object-fit: cover;">
+                        </div>
                     </a>
-                    <!--Display Categories automatically here-->
-                    <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                        {% for category in categories %}
-                        <a class="dropdown-item" href="{% url 'categories' category.0 %}">{{ category.1 }}</a>
-                        {% endfor %}
-                    </div>
-                </li>
-            </ul>
-            {% if user.is_authenticated %}
-            <p class="nav-item ms-auto my-2 text-light">Hello <strong>{{ user.username }}!</strong></p>
-            {% endif %}
-            <!-- <form class="form-inline ms-auto" action="{% url 'search' %}" method="POST">
-                {% csrf_token %}
-                <input class="form-control ms-auto my-2" type="text" placeholder="Search" aria-label="Search"
-                    name="title" id="searchForm">
-                <input class="btn btn-outline-light my-2" type="submit" value="Search">
-            </form> -->
-            <a class="btn btn-outline-light my-2 mx-2" href="{% url 'createListing' %}">Create Listing</a>
-            {% if user.is_authenticated %}
-            <a class="btn btn-outline-light my-2 mx-2" href="{% url 'logout' %}">Logout</a>
-            {% else %}
-            <a class="btn btn-outline-light my-2 mx-2" href="{% url 'login' %}">Login</a>
-            <a class="btn btn-outline-light my-2 mx-2" href="{% url 'register' %}">Register</a>
-            {% endif %}
+                </div>
+                {% endif %}
+            </div>
         </div>
     </nav>
     {% block body %}
     {% endblock %}
 </body>
-<script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
-    integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n"
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
     crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
-    integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
-    crossorigin="anonymous"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"
-    integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
-    crossorigin="anonymous"></script>
+<script src="https://kit.fontawesome.com/9e03a65d74.js" crossorigin="anonymous"></script>
+
 
 </html>

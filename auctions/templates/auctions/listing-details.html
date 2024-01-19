@@ -1,0 +1,219 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+<section class="container-fluid px-5 mt-md-5 mt-3">
+    <div class="row align-items-center justify-content-center gx-5">
+        <div class="col-lg-4 col-12">
+            <img src="{{listing.image.url }}" class="img-fluid card rounded">
+            {% if listing.buying_format != 'BIN' %}
+            <div class="d-block card text-center bg-warning-subtle py-2 mt-2 border-light lead fw-bold">
+                <i class="bi bi-file-bar-graph-fill"></i> {{total_bids}} Bids/Offers so far
+            </div>
+            {% endif %}
+        </div>
+        <div class="col-lg-7 col-12 px-lg-5 px-0 my-lg-0 my-5 ms-lg-5 ms-0 justify-content-center">
+            <div class="d-block">
+                <h1 class="display-4">{{listing.title}}</h1>
+                <div class="d-block">
+                    <p class="float-start text-muted lead">{{listing.get_condition_display}}</p>
+                    {% if watchers > 0%}
+                    <p class="float-end text-muted"><mark class="bg-primary-subtle rounded px-3"><i
+                                class="bi bi-eyeglasses"></i>
+                            {{watchers}} people are watching this.</mark>
+                    </p>
+                    {% endif %}
+                </div>
+                <br>
+                <br>
+            </div>
+            <div class="d-block">
+                <p class="lead"><strong>Description: </strong>{{listing.description}}</p>
+            </div>
+            <div class="d-block">
+                <div class="d-flex flex-row align-items-center">
+                    <strong class="lead fs-3">Price: </strong> <span class="lead fs-3">৳
+                        {{listing.get_current_price}}</span><span class="text-muted
+                    ms-3"><mark>{{listing.get_buying_format_display}}</mark></span>
+                </div>
+                {% if not listing.free_shipping %}
+                <div class="d-block">
+                    <small class="text-muted">+ shipping</small>
+                </div>
+                {% endif %}
+            </div>
+            <hr>
+            <div class="d-block my-3">
+                {% if user_has_bid %}
+                <a class="btn btn-primary">View Your Bid</a>
+                {% else %}
+
+                <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
+                    <i class="bi bi-bag-fill"></i>{%if listing.buying_format == 'A' %} Place Bid {% endif %}
+                    {% if listing.buying_format == 'AO' %} Make Offer{% endif %}
+                    {% if listing.buying_format == 'BIN' %} Buy Now{% endif %}
+                </button>
+                {% endif %}
+                {% if listing in request.user.watchlist.all %}
+                <a class="btn btn-outline-success disabled">
+                    <i class="bi bi-check"></i> Added to Watchlist
+                </a>
+                {% else %}
+                <a class="btn btn-outline-primary" href="{% url 'add-to-watchlist' listing.title %}">
+                    <i class="bi bi-eyeglasses"></i> Add to Watchlist
+                </a>
+                {% endif %}
+                <p class="float-end text-muted fs-6 mt-sm-0 mt-2"><i class="bi bi-geo-alt-fill"></i>
+                    {{listing.get_location_display}}
+                </p>
+            </div>
+            <div class="d-block">
+            </div>
+        </div>
+    </div>
+</section>
+<section class="container-fluid px-md-5 px-4 my-md-5">
+    <h4 class="h4 mb-3">You may also like</h4>
+    <div class="row align-items-center">
+        {% for listing in similar_listings %}
+        <div class="col-lg-3 col-md-6 col-12 my-2">
+            <a class="page-link" href="{% url 'view-listing' listing.title %}">
+                <div class="card">
+                    <img src="{{ listing.image.url }}" class="img-fluid listing-image" href="">
+                    <div class="px-3 py-2">
+                        <div class="mt-2">
+                            <h5 class="my-0 text-truncate">{{listing.title}}</h5>
+                            <p class="text-muted my-0">{{listing.get_condition_display}}</p>
+                        </div>
+                        <div class="mt-3">
+                            <strong>${{listing.get_current_price}}</strong>
+                            <p class="text-muted my-0">{{listing.get_buying_format_display}}</p>
+                            <div class="d-block mt-3">
+                                {% if listing.free_shipping %}
+                                <p class="float-start text-muted fs-6"> <mark>Free Shipping</mark></p>
+                                {% endif %}
+                                <p class="float-end text-muted fs-6"><i class="bi bi-geo-alt-fill"></i>
+                                    {{listing.get_location_display}}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+<section class="container-fluid px-md-5 px-4 mt-md-3 mt-5">
+    <h1>Comments</h1>
+    <hr>
+    <h5 class="lead mt-5">Share your thoughts </h5>
+    <form action="{% url 'comment' listing.title %}" method="post" class="row g-3 align-items-start">
+        <div class="col-md-10 col-12">
+            {% csrf_token %}
+            {{ comment_form.comment }}
+            <small class="form-text text-muted">Please keep comments relevant to the item or transaction, respectful in
+                tone, and compliant with our site policies to ensure a positive community experience</small>
+        </div>
+        <div class="col-md-2 col-12">
+            <button type="submit" class="btn btn-primary me-5 rounded-end"><i class="bi bi-chat-square-quote-fill"></i>
+                Comment</button>
+        </div>
+    </form>
+    <hr>
+    <div class="row justify-content-center mt-3">
+        {% for comment in comments%}
+        <div class="col-12 py-3 border-bottom">
+            <div class="d-block">
+                <div class="d-inline-flex align-items-center ms-md-4 ms-0">
+                    <div style="width: 40px; height: 40px; overflow: hidden; border-radius: 50%;">
+                        <img src="{{ comment.user.display_picture.url }}"
+                            style="height:100%; width: 100%; object-fit: cover;">
+                    </div>
+                    <span class="lead mx-3">{{comment.user.username}}</span>
+                    <span class="text-muted small">{{comment.date}}</span>
+                </div>
+                <div class="d-block mt-2  ms-md-4 ms-0">
+                    <p>{{comment.comment}}</p>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+<!-- Modal -->
+<div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+    aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="staticBackdropLabel">Listing Purchase</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body justify-content-start">
+                {% if not messages %}
+                <form action="{% url 'place-bid' listing.title %}" method="post" class="align-items-center my-3">
+                    <h5 class="lead">{%if listing.buying_format == 'A' %}Place Bid {% endif %}
+                        {% if listing.buying_format == 'AO' %}Make Offer{% endif %}
+                        {% if listing.buying_format == 'BIN' %}Buy Now{% endif %}</h5>
+                    {% csrf_token %}
+                    {% for field in bid_form %}
+                    <div class="mb-3">
+                        <label class="text-muted" for="{{field.id_for_label}}">{{field.label}}: </label>
+                        {{ field }}
+                        {% if field.errors %}
+                        <div class="invalid-feedback">
+                            {{ field.errors }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                    <button type="submit" class="btn btn-success btn-sm "><i class="bi bi-bag-fill"></i>
+                        {%if listing.buying_format == 'A' %} Place Bid{%else%} Make Offer{% endif %}</button>
+                </form>
+                <small class="form-text text-muted"><i class="bi bi-info-circle"></i> Bids higher than current listed
+                    price will accepted</small>
+            </div>
+            <div class="modal-footer">
+                <a class="text-muted text-decoration-none"
+                    href="{% url 'add_payment_method_redirect' listing.title %}"><i class="bi bi-plus"></i> <small>Add
+                        Payment
+                        Method</small></a>
+                <a class="text-muted text-decoration-none"
+                    href="{% url 'add_shipping_address_redirect' listing.title %}"><i class="bi bi-plus"></i> <small>Add
+                        Shipping
+                        Address</small></a>
+            </div>
+            {% else %}
+            {% for message in messages %}
+            <center>
+                <h1 class="{{message.tags}}-icon display-1 text-center"><i class="bi bi-check-circle"></i></h1>
+            </center>
+            <div class="messages lead text-muted text-center fs-6 mb-2">
+                {{ message }}
+            </div>
+            {% endfor %}
+            <div class="modal-footer">
+                <a class="btn btn-primary btn-sm">View Bids</a>
+                <button type="button" class="btn btn-dark btn-sm" data-bs-dismiss="modal">Close</button>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% if open_modal %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var myModal = new bootstrap.Modal(document.getElementById('staticBackdrop'), {
+            backdrop: 'static',
+            keyboard: false
+        });
+
+        myModal.show();
+    });
+</script>
+{% endif %}
+
+<!-- Rest of your template HTML -->
+
+{% endblock %}

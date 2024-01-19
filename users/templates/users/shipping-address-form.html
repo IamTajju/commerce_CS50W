@@ -1,0 +1,55 @@
+{% extends "users/layout.html" %}
+
+{% block body %}
+{% if messages %}
+{% for message in messages %}
+
+<center>
+    <h1 class="{{message.tags}}-icon display-1 text-center"><i class="bi bi-check-circle"></i></h1>
+    <div class="spinner-border text-center {{message.tags}}-icon my-2" role="status">
+        <span class="visually-hidden">Loading...</span>
+    </div>
+</center>
+<div class="messages alert alert-{{message.tags}} lead text-muted">
+    {{ message }}
+</div>
+{% endfor %}
+{% if request.session.listing_title %}
+<script>
+    // Redirect to a new page after 2 seconds
+    setTimeout(function () {
+        window.location.href = "{% url 'place-bid' request.session.listing_title %}";
+    }, 2000);
+</script>
+{% else %}
+<script>
+    // Redirect to a new page after 2 seconds
+    setTimeout(function () {
+        window.location.href = "{% url 'index' %}";
+    }, 2000);
+</script>
+{% endif %}
+{% else %}
+
+<h3 class="mb-4 text-center">Add New Shipping Address</h3>
+
+<form class="form-group" method="post" action="{% url 'add_shipping_address' %}" id="address-form">
+    {% csrf_token %}
+
+    {% for field in form %}
+    <div class="mb-3">
+        <label class="text-muted" for="{{field.id_for_label}}">{{field.label}}: </label>
+        {{ field }}
+        <div id="{{field.label}}" class="text-muted"><small>{{field.help_text}}</small></div>
+        {% if field.errors %}
+        <div class="invalid-feedback">
+            {{ field.errors }}
+        </div>
+        {% endif %}
+    </div>
+    {% endfor %}
+
+    <button type="submit" class="btn btn-primary">Submit</button>
+</form>
+{% endif %}
+{% endblock %}

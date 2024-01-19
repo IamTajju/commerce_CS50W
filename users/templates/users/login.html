@@ -4,35 +4,37 @@
 <script src="https://accounts.google.com/gsi/client" async></script>
 <h2 style="text-align: center;">Sign in to your Account</h2>
 {% if message %}
-<div class="alert alert-warning" style="text-align: center;">{{ message }}</div>
+<div class="alert alert-warning text-center">{{ message }}</div>
 {% endif %}
 
 <form action="{% url 'login' %}" method="post" class="mt-4">
     {% csrf_token %}
-    <div class="form-group">
+    <div class="form-group mb-3">
         <input autofocus class="form-control" type="text" name="username" placeholder="Username">
     </div>
-    <div class="form-group">
+    <div class="form-group mb-3">
         <input class="form-control" type="password" name="password" placeholder="Password">
     </div>
-    <input class="btn btn-primary px-5 my-2 w-100" type="submit" value="Login">
-    <div class="form-inline mt-4">
-        <div class="mx-lg-3 mx-0">
-            <h4 class="lead text-muted">Sign in using: </h4>
-        </div>
-        <div>
-            <div id="g_id_onload"
-                data-client_id="100295696058-7iois28fokoq4u65v5jc1mhmk0feual0.apps.googleusercontent.com"
-                data-context="signin" data-ux_mode="redirect"
-                data-login_uri="http://localhost:3000/users/google-auth-receiver" data-auto_select="true"
-                data-itp_support="true">
+    <input class="btn btn-secondary w-100" type="submit" value="Login">
+    <center>
+        <div class="row mt-4 align-items-center justify-content-center">
+            <div class="col-auto">
+                <h4 class="lead">Sign in using: </h4>
             </div>
+            <div class="col-auto">
+                <div id="g_id_onload"
+                    data-client_id="100295696058-7iois28fokoq4u65v5jc1mhmk0feual0.apps.googleusercontent.com"
+                    data-context="signin" data-ux_mode="redirect"
+                    data-login_uri="http://localhost:3000/users/google-auth-receiver" data-auto_select="true"
+                    data-itp_support="true">
+                </div>
 
-            <div class="g_id_signin" data-type="standard" data-shape="rectangular" data-theme="outline"
-                data-text="signin_with" data-size="large" data-logo_alignment="left">
+                <div class="g_id_signin" data-type="standard" data-shape="rectangular" data-theme="outline"
+                    data-text="signin_with" data-size="large" data-logo_alignment="left">
+                </div>
             </div>
         </div>
-    </div>
+    </center>
 </form>
 <hr>
 <p class="text-center">Don't have an account? <span><a href="{% url 'register' %}">Register here.</a></span></p>

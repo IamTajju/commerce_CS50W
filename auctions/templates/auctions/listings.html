@@ -1,0 +1,97 @@
+<div class="d-flex flex-row me-auto">
+    {% for label in filter_labels%}
+    <a class="btn btn-primary rounded-pill btn-sm align-items-center mx-2 remove-filter text-capitalize d-lg-block d-none"
+        data-label="{{label.0}}">{{label.1}} <i class="bi bi-x-lg"></i>
+    </a>
+    {% endfor %}
+    <button class="btn btn-secondary btn-sm rounded-pill d-lg-none d-flex float-end me-1" type="button"
+        data-bs-toggle="offcanvas" data-bs-target="#offcanvasScrolling" aria-controls="offcanvasScrolling"><i
+            class="bi bi-filter"></i></button>
+    <div class="dropdown ms-auto">
+        <button class="btn btn-outline-secondary btn-sm dropdown-toggle rounded-pill" type="button"
+            data-bs-toggle="dropdown" aria-expanded="false">
+            Sort: {{paginator.sort_option}}
+        </button>
+        <ul class="dropdown-menu">
+            <li><a class="dropdown-item sort-option" data-sort="best-match">Best Match</a></li>
+            <li><a class="dropdown-item sort-option" data-sort="high-to-low">Price: High to Low</a>
+            </li>
+            <li><a class="dropdown-item sort-option" data-sort="low-to-high">Price: Low to High</a>
+            </li>
+        </ul>
+    </div>
+    <div class="ms-2">
+        <nav aria-label="...">
+            <ul class="pagination pagination-sm my-0 py-0 justify-content-end">
+                {% if paginator.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" aria-label="Previous" data-label="previous">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+                {% endif %}
+
+                {% for page_num in paginator.get_page_numbers %}
+                <li class="page-item {% if page_num == paginator.current_page %}active{% endif %}">
+                    <a class="page-link" data-label="{{ page_num }}">{{ page_num}}</a>
+                </li>
+                {% endfor %}
+
+                {% if paginator.has_next %}
+                <li class="page-item">
+                    <a class="page-link" aria-label="Next" data-label="next">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+</div>
+<div class="d-lg-none d-block my-3 px-0 ">
+    {% for label in filter_labels%}
+    <a class="btn btn-primary rounded-pill btn-sm align-items-center me-2 my-2 remove-filter text-capitalize"
+        data-label="{{label.0}}">{{label.1}} <i class="bi bi-x-lg"></i>
+    </a>
+    {% endfor %}
+</div>
+<div class="d-block mt-5">
+    <div class="row gx-3">
+        {% if not paginator.has_listings %}
+        <div class="col-auto my-2 px-5">
+            <p class="lead">We're sorry, but we couldn't find any listings that match your specific
+                criteria. It's possible that there are currently no items available that meet your search
+                parameters. Consider broadening your search or adjusting the filters to discover more
+                listings. If you have any specific requirements or if you need assistance, feel free to
+                reach out to our support team. Thank you for using our platform!</p>
+        </div>
+        {% endif %}
+        {% for listing in paginator.get_listings %}
+        <div class="col-lg-3 col-md-6 col-12 my-2">
+            <a class="page-link" href="{% url 'view-listing' listing.title %}">
+                <div class="card">
+                    <img src="{{ listing.image.url }}" class="img-fluid listing-image" href="">
+                    <div class="px-3 py-2">
+                        <div class="mt-2">
+                            <h5 class="my-0 text-truncate">{{listing.title}}</h5>
+                            <p class="text-muted my-0">{{listing.get_condition_display}}</p>
+                        </div>
+                        <div class="mt-3">
+                            <strong>${{listing.get_current_price}}</strong>
+                            <p class="text-muted my-0">{{listing.get_buying_format_display}}</p>
+                            <div class="d-block mt-3">
+                                {% if listing.free_shipping %}
+                                <p class="float-start text-muted fs-6"> <mark>Free Shipping</mark></p>
+                                {% endif %}
+                                <p class="float-end text-muted fs-6"><i class="bi bi-geo-alt-fill"></i>
+                                    {{listing.get_location_display}}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+</div>

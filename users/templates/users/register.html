@@ -9,40 +9,40 @@
 {% endif %}
 
 
-<form action="{% url 'register' %}" method="post" class="mt-4">
+<form action="{% url 'register' %}" method="post" class="mt-4" enctype="multipart/form-data">
     {% csrf_token %}
-    <div class="form-group">
-        <input class="form-control" autofocus type="text" name="username" placeholder="Username">
-    </div>
-    <div class="form-group">
-        <input class="form-control" type="email" name="email" placeholder="Email Address">
-    </div>
-    <div class="form-group">
-        <input class="form-control" type="password" name="password" placeholder="Password">
-    </div>
-    <div class="form-group">
-        <input class="form-control" type="password" name="confirmation" placeholder="Confirm Password">
-    </div>
-    <input class="btn btn-primary w-100" type="submit" value="Register">
-    <div class="form-inline mt-4">
-        <div class="mx-lg-3 mx-0">
-            <h4 class="lead text-muted">Sign in using: </h4>
+    {% for field in form %}
+    <div class="form-group mb-3">
+        {{ field }}
+        {% if field.errors %}
+        <div class="invalid-feedback">
+            {{ field.errors }}
         </div>
-        <div>
-            <div id="g_id_onload"
-                data-client_id="100295696058-7iois28fokoq4u65v5jc1mhmk0feual0.apps.googleusercontent.com"
-                data-context="signin" data-ux_mode="redirect"
-                data-login_uri="http://localhost:3000/users/google-auth-receiver" data-auto_select="true"
-                data-itp_support="true">
+        {% endif %}
+    </div>
+    {% endfor %}
+    <input class="btn btn-secondary w-100" type="submit" value="Register">
+    <center>
+        <div class="row mt-4 align-items-center justify-content-center">
+            <div class="col-auto">
+                <h4 class="lead">Sign in using: </h4>
             </div>
+            <div class="col-auto">
+                <div id="g_id_onload"
+                    data-client_id="100295696058-7iois28fokoq4u65v5jc1mhmk0feual0.apps.googleusercontent.com"
+                    data-context="signin" data-ux_mode="redirect"
+                    data-login_uri="http://localhost:3000/users/google-auth-receiver" data-auto_select="true"
+                    data-itp_support="true">
+                </div>
 
-            <div class="g_id_signin" data-type="standard" data-shape="rectangular" data-theme="outline"
-                data-text="signin_with" data-size="large" data-logo_alignment="left">
+                <div class="g_id_signin" data-type="standard" data-shape="rectangular" data-theme="outline"
+                    data-text="signin_with" data-size="large" data-logo_alignment="left">
+                </div>
             </div>
         </div>
-    </div>
+    </center>
 </form>
 
 <hr>
-<p><span>Already have an account? <a href="{% url 'login' %}"> </span>Log In here.</a></p>
+<p class="text-center"><span>Already have an account? <a href="{% url 'login' %}"> </span>Log In here.</a></p>
 {% endblock %}

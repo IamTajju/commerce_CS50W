@@ -1,45 +1,9 @@
 {% extends "auctions/layout.html" %}
-
+{% load static %}
 {% block body %}
 
-<section class="container-fluid mx-0 px-0 text-light">
-    <div class="px-lg-5 px-4 context">
-        {% if categoryName %}
-        <h1 class="display-4">Active Listings in <strong>{{ categoryName }}</strong></h1>
-        {% else %}
-        <h1 class="display-4">Active Listings</h1>
-        {% endif %}
-        <p class="lead">Auction.com is the leading marketplace for buying and selling Electronics, Home, Fashion and Toy
-            Products! Scroll through our Active Listings, Place Bids, Add your favorites to your Watchlist and
-            Create your own Listing</p>
-        <span class="container-fluid">
-            <h3 class="mb-2 mr-2">Explore Other Categories </h3>
-            <a class="btn btn-outline-light rounded-pill mr-2 my-2 {% if not categoryName %} active {% endif %}"
-                href="{% url 'index' %}" role="button">All</a>
-            {% for category in categories %}
-            <a class="btn btn-outline-light rounded-pill mr-2 my-2 {% if categoryName == category.1 %} active {% endif %}"
-                href="{% url 'categories' category.0 %}" role="button">
-                {{ category.1 }}</a>
-            {% endfor %}
-        </span>
-        <hr class="my-4">
-        <div>
-            <form action="{% url 'search' %}" method="POST">
-                <div class="d-xl-flex d-lg-none d-md-none d-flex mb-xl-0 mb-lg-0">
-                    {% csrf_token %}
-                    <input class="form-control mr-3 rounded-pill" type="text" placeholder="Search Listings" aria-label="Search"
-                        name="title">
-                    <button type="submit" class="btn btn-outline-light btn-sm rounded-pill px-3"><i
-                            class="fa-solid fa-magnifying-glass"></i>
-                    </button>
-                </div>
-
-            </form>
-            <ul class="list-group" id="sresults-ss" style="position: absolute; max-width: 45em;">
-            </ul>
-        </div>
-    </div>
-    <div class="area">
+<section class="container-fluid px-0 mx-0 hero-bg">
+    <div class="px-lg-5 px-4 py-5">
         <ul class="circles">
             <li></li>
             <li></li>
@@ -52,64 +16,606 @@
             <li></li>
             <li></li>
         </ul>
+        <div class="row justify-content-start align-items-center">
+            <div class="col-lg-8 col-auto py-5">
+                <h1 class="display-3">Auctions.com</h1>
+                <p class="lead"><mark>The leading marketplace</mark> for buying and selling Electronics, Home, Fashion
+                    and Toy
+                    Products! Scroll through our Active Listings, Place Bids, Add your favorites to your Watchlist
+                    and
+                    Create your own Listing</p>
+                <span class="d-block mt-5">
+                    <h3 class="mb-2 mr-2">Explore Our Top Categories</h3>
+                    <a class="btn btn-outline-secondary rounded-pill mr-2 my-2 active" href="#" role="button"
+                        id="categoryLink">All</a>
+                    {% for category in categories %}
+                    <a class="btn btn-outline-secondary rounded-pill mr-2 my-2 category-link" href="#" role="button"
+                        id="categoryLink{{ category.0 }}" data-category="{{ category.0 }}">
+                        {{ category.1 }}</a>
+                    {% endfor %}
+                </span>
+                <hr class="my-2">
+            </div>
+        </div>
     </div>
 </section>
-<section class="container-fluid">
-    <div class="row my-2 mx-5">
-        {% for item in listings%}
-        <div class="col-12 col-xl-6 card shadow-sm p-5 mt-5 justify-content-start">
-            <div class="row align-items-center">
-                <div class="col">
-                    <h3>{{ item.title }}</h3>
-                    <p>Price: ${{item.getCurrentPrice}}</p>
-                    <p>Category: <span> <a
-                                href="{% url 'categories' item.category %}">{{item.get_category_display}}</a></span></p>
-                    <div><span class="badge badge-pill badge-info">Bids Placed: {{ item.getBids|length }}</span></div>
-                    {% if user != item.listedBy %}
-                    <div class="mt-3 mb-1">
-                        <form action="{% url 'bid' item.title %}" method="post" class="form-row align-items-center">
-                            <div class="col-auto">
-                                {% csrf_token %}
-                                {{ bidForm }}
-                                <small class="form-text text-muted">Bids higher than current listed price will
-                                    accepted</small>
-                                {% if successMessage %}
-                                <div class="alert alert-success" role="alert">
-                                    {{ successMessage }}
-                                </div>
-                                {% elif failMessage %}
-                                <div class="alert alert-danger" role="alert">
-                                    {{ failMessage }}
-                                </div>
-                                {% endif %}
-                                <div>
-                                    <input type="submit" class="btn btn-outline-primary rounded-pill my-1"
-                                        value="Place Bid">
-                                    <a class="btn btn-outline-dark rounded-pill my-1"
-                                        href="{% url 'listing' item.title %}">Listing
-                                        Details</a>
-                                </div>
+<section class="container-fluid py-5 px-5" id="listings-section">
+    <div class="row">
+        <div class="offcanvas offcanvas-start p-5 d-lg-none d-block" data-bs-scroll="true" data-bs-backdrop="false"
+            tabindex="-1" id="offcanvasScrolling" aria-labelledby="offcanvasScrollingLabel"
+            style="max-height:350vh; overflow-y: auto;">
+            <button type="button" class="btn-close float-end" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+            <h4>Filter Listings</h4>
+            <div class="accordion accordion-flush">
+                <!-- Categories -->
+                <div class="accordion-item">
+                    <h2 class="accordion-header border-bottom">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                            data-bs-target="#category-accordion" aria-expanded="false"
+                            aria-controls="category-accordion">
+                            Category
+                        </button>
+                    </h2>
+                    <div id="category-accordion" class="accordion-collapse collapse show">
+                        <div class="accordion-body px-0">
+                            {% for category in categories %}
+                            <div class="form-check my-2">
+                                <input class="form-check-input category-checkbox filter-checkbox" type="checkbox"
+                                    value="{{category.0}}" id="categoryCheckBox{{ category.0 }}"
+                                    data-filter-type="category" data-category="{{ category.0 }}">
+                                <label class="form-check-label" for="categoryCheckBox{{ category.0 }}">
+                                    {{category.1}}
+                                </label>
                             </div>
-                        </form>
+                            {% endfor %}
+                        </div>
                     </div>
-                    {% else %}
-                    <div class="mt-3 mb-1">
-                        <a class="btn btn-outline-dark rounded-pill my-1" href="{% url 'listing' item.title %}">Listing
-                            Details</a>
-                        <a class="btn btn-outline-danger rounded-pill my-1" href="{% url 'close' item.title %}">Close
-                            Listing</a>
-                    </div>
-                    {% endif %}
                 </div>
-                <div class="col-auto">
-                    <img src="{{ item.image }}" width="300">
+                <!-- Price -->
+                <div class="accordion-item">
+                    <h2 class="accordion-header border-bottom">
+                        <button class=" accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                            data-bs-target="#price-accordion" aria-expanded="false" aria-controls="price-accordion">
+                            Price Range
+                        </button>
+                    </h2>
+                    <div id="price-accordion" class="accordion-collapse collapse show">
+                        <div class="accordion-body px-0">
+                            <div class="range-container">
+                                <span class="min-value">0</span>
+                                <input type="range" class="form-range ps-3 pe-5" id="mobile_price_range"
+                                    value="{{max_price}}" data-category="price_range" data-filter-type="price_range">
+                                <span class="max-value">{{max_price}}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Buying Format -->
+                <div class="accordion-item">
+                    <h2 class="accordion-header border-bottom">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                            data-bs-target="#buying-format-accordion" aria-expanded="false"
+                            aria-controls="buying-format-accordion">
+                            Buying Format
+                        </button>
+                    </h2>
+                    <div id="buying-format-accordion" class="accordion-collapse collapse show">
+                        <div class="accordion-body px-0">
+                            {% for buying_format in buying_formats%}
+                            <div class="form-check my-2">
+                                <input class="form-check-input buying-format-checkbox filter-checkbox" type="checkbox"
+                                    value="{{buying_format.0}}" id="buyingFormatCheckBox{{ forloop.counter}}"
+                                    data-filter-type="buying_format">
+                                <label class="form-check-label" for="buyingFormatCheckBox{{ forloop.counter}}">
+                                    {{buying_format.1}}
+                                </label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                <!-- Condition -->
+                <div class="accordion-item">
+                    <h2 class="accordion-header border-bottom">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                            data-bs-target="#condition-accordion" aria-expanded="false"
+                            aria-controls="condition-accordion">
+                            Condition
+                        </button>
+                    </h2>
+                    <div id="condition-accordion" class="accordion-collapse collapse show">
+                        <div class="accordion-body px-0">
+                            {% for condition in conditions %}
+                            <div class="form-check my-2">
+                                <input class="form-check-input condition-checkbox filter-checkbox" type="checkbox"
+                                    value="{{condition.0}}" id="conditionCheckBox{{ forloop.counter}}"
+                                    data-filter-type="condition">
+                                <label class="form-check-label" for="conditionCheckBox{{ forloop.counter}}">
+                                    {{condition.1}}
+                                </label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                <!-- Location -->
+                <div class="accordion-item">
+                    <h2 class="accordion-header border-bottom">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                            data-bs-target="#location-accordion" aria-expanded="false"
+                            aria-controls="location-accordion">
+                            Item Location
+                        </button>
+                    </h2>
+                    <div id="location-accordion" class="accordion-collapse collapse show">
+                        <div class="accordion-body px-0">
+                            {% for location in locations %}
+                            <div class="form-check my-2">
+                                <input class="form-check-input location-checkbox filter-checkbox" type="checkbox"
+                                    value="{{location.0}}" id="locationCheckBox{{ forloop.counter}}"
+                                    data-filter-type="location">
+                                <label class="form-check-label" for="locationCheckBox{{ forloop.counter}}">
+                                    {{location.1}}
+                                </label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                <!-- Shipping Options -->
+                <div class="accordion-item">
+                    <h2 class="accordion-header border-bottom">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                            data-bs-target="#shipping-options-accordion" aria-expanded="false"
+                            aria-controls="shipping-options-accordion">
+                            Shipping Options
+                        </button>
+                    </h2>
+                    <div id="shipping-options-accordion" class="accordion-collapse collapse show">
+                        <div class="accordion-body px-0">
+                            <div class="form-check my-2">
+                                <input class="form-check-input free-shipping-checkbox filter-checkbox" type="checkbox"
+                                    value="True" id="freeShippingCheckBox" data-filter-type="free_shipping">
+                                <label class="form-check-label" for="freeShippingCheckBox">
+                                    Free Country Wide Shipping
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Local Pickup -->
+                <div class="accordion-item">
+                    <h2 class="accordion-header border-bottom">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                            data-bs-target="#local-pickup-accordion" aria-expanded="false"
+                            aria-controls="local-pickup-accordion">
+                            Local Pickup
+                        </button>
+                    </h2>
+                    <div id="local-pickup-accordion" class="accordion-collapse collapse show">
+                        <div class="accordion-body px-0">
+                            <div class="form-check my-2">
+                                <input class="form-check-input local-pickup-checkbox filter-checkbox" type="checkbox"
+                                    value="True" id="localPickupCheckBox" data-filter-type="local_pickup">
+                                <label class="form-check-label" for="localPickupCheckBoxt">
+                                    Free Local Pickup
+                                </label>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-        {% endfor %}
-        {% if listings|length == 0 %}
-        <h3>No Listings sorry. Come back another time</h3>
-        {% endif %}
-    </div>
+        <div class="col-lg-2 col-12 border-end d-none d-lg-block">
+            <h4>Filter Listings</h4>
+            <div class="accordion accordion-flush">
+                <!-- Categories -->
+                <div class="accordion-item">
+                    <h2 class="accordion-header border-bottom">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                            data-bs-target="#category-accordion" aria-expanded="false"
+                            aria-controls="category-accordion">
+                            Category
+                        </button>
+                    </h2>
+                    <div id="category-accordion" class="accordion-collapse collapse show">
+                        <div class="accordion-body px-0">
+                            {% for category in categories %}
+                            <div class="form-check my-2">
+                                <input class="form-check-input category-checkbox filter-checkbox" type="checkbox"
+                                    value="{{category.0}}" id="categoryCheckBox{{ category.0 }}"
+                                    data-filter-type="category" data-category="{{ category.0 }}">
+                                <label class="form-check-label" for="categoryCheckBox{{ category.0 }}">
+                                    {{category.1}}
+                                </label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                <!-- Price -->
+                <div class="accordion-item">
+                    <h2 class="accordion-header border-bottom">
+                        <button class=" accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                            data-bs-target="#price-accordion" aria-expanded="false" aria-controls="price-accordion">
+                            Price Range
+                        </button>
+                    </h2>
+                    <div id="price-accordion" class="accordion-collapse collapse show">
+                        <div class="accordion-body px-0">
+                            <div class="range-container">
+                                <span class="min-value">0</span>
+                                <input type="range" class="form-range ps-3 pe-5" id="desktop_price_range"
+                                    value="{{max_price}}" data-category="price_range" data-filter-type="price_range">
+                                <span class="max-value">{{max_price}}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Buying Format -->
+                <div class="accordion-item">
+                    <h2 class="accordion-header border-bottom">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                            data-bs-target="#buying-format-accordion" aria-expanded="false"
+                            aria-controls="buying-format-accordion">
+                            Buying Format
+                        </button>
+                    </h2>
+                    <div id="buying-format-accordion" class="accordion-collapse collapse show">
+                        <div class="accordion-body px-0">
+                            {% for buying_format in buying_formats%}
+                            <div class="form-check my-2">
+                                <input class="form-check-input buying-format-checkbox filter-checkbox" type="checkbox"
+                                    value="{{buying_format.0}}" id="buyingFormatCheckBox{{ forloop.counter}}"
+                                    data-filter-type="buying_format">
+                                <label class="form-check-label" for="buyingFormatCheckBox{{ forloop.counter}}">
+                                    {{buying_format.1}}
+                                </label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                <!-- Condition -->
+                <div class="accordion-item">
+                    <h2 class="accordion-header border-bottom">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                            data-bs-target="#condition-accordion" aria-expanded="false"
+                            aria-controls="condition-accordion">
+                            Condition
+                        </button>
+                    </h2>
+                    <div id="condition-accordion" class="accordion-collapse collapse show">
+                        <div class="accordion-body px-0">
+                            {% for condition in conditions %}
+                            <div class="form-check my-2">
+                                <input class="form-check-input condition-checkbox filter-checkbox" type="checkbox"
+                                    value="{{condition.0}}" id="conditionCheckBox{{ forloop.counter}}"
+                                    data-filter-type="condition">
+                                <label class="form-check-label" for="conditionCheckBox{{ forloop.counter}}">
+                                    {{condition.1}}
+                                </label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                <!-- Location -->
+                <div class="accordion-item">
+                    <h2 class="accordion-header border-bottom">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                            data-bs-target="#location-accordion" aria-expanded="false"
+                            aria-controls="location-accordion">
+                            Item Location
+                        </button>
+                    </h2>
+                    <div id="location-accordion" class="accordion-collapse collapse show">
+                        <div class="accordion-body px-0">
+                            {% for location in locations %}
+                            <div class="form-check my-2">
+                                <input class="form-check-input location-checkbox filter-checkbox" type="checkbox"
+                                    value="{{location.0}}" id="locationCheckBox{{ forloop.counter}}"
+                                    data-filter-type="location">
+                                <label class="form-check-label" for="locationCheckBox{{ forloop.counter}}">
+                                    {{location.1}}
+                                </label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                <!-- Shipping Options -->
+                <div class="accordion-item">
+                    <h2 class="accordion-header border-bottom">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                            data-bs-target="#shipping-options-accordion" aria-expanded="false"
+                            aria-controls="shipping-options-accordion">
+                            Shipping Options
+                        </button>
+                    </h2>
+                    <div id="shipping-options-accordion" class="accordion-collapse collapse show">
+                        <div class="accordion-body px-0">
+                            <div class="form-check my-2">
+                                <input class="form-check-input free-shipping-checkbox filter-checkbox" type="checkbox"
+                                    value="True" id="freeShippingCheckBox" data-filter-type="free_shipping">
+                                <label class="form-check-label" for="freeShippingCheckBox">
+                                    Free Country Wide Shipping
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Local Pickup -->
+                <div class="accordion-item">
+                    <h2 class="accordion-header border-bottom">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                            data-bs-target="#local-pickup-accordion" aria-expanded="false"
+                            aria-controls="local-pickup-accordion">
+                            Local Pickup
+                        </button>
+                    </h2>
+                    <div id="local-pickup-accordion" class="accordion-collapse collapse show">
+                        <div class="accordion-body px-0">
+                            <div class="form-check my-2">
+                                <input class="form-check-input local-pickup-checkbox filter-checkbox" type="checkbox"
+                                    value="True" id="localPickupCheckBox" data-filter-type="local_pickup">
+                                <label class="form-check-label" for="localPickupCheckBoxt">
+                                    Free Local Pickup
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-10 col-12" id="listings-container">
+            <div class="d-flex me-auto">
+                <button class="btn btn-secondary btn-sm rounded-pill d-lg-none d-flex" type="button"
+                    data-bs-toggle="offcanvas" data-bs-target="#offcanvasScrolling"
+                    aria-controls="offcanvasScrolling"><i class="bi bi-filter"></i></button>
+                <div class="dropdown ms-auto">
+                    <button class="btn btn-outline-secondary btn-sm dropdown-toggle rounded-pill" type="button"
+                        data-bs-toggle="dropdown" aria-expanded="false">
+                        Sort: {{paginator.sort_option}}
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item sort-option" data-sort="best-match">Best Match</a></li>
+                        <li><a class="dropdown-item sort-option" data-sort="high-to-low">Price: High to Low</a>
+                        </li>
+                        <li><a class="dropdown-item sort-option" data-sort="low-to-high">Price: Low to High</a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="ms-2">
+                    <nav aria-label="...">
+                        <ul class="pagination pagination-sm my-0 py-0 justify-content-end">
+                            {% if paginator.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" aria-label="Previous" data-label="previous">
+                                    <span aria-hidden="true">&laquo;</span>
+                                </a>
+                            </li>
+                            {% endif %}
+                            {% for page_num in paginator.get_page_numbers %}
+                            <li class="page-item {% if page_num == paginator.current_page %}active{% endif %}">
+                                <a class="page-link" data-label="{{ page_num }}">{{ page_num}}</a>
+                            </li>
+                            {% endfor %}
+
+                            {% if paginator.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" aria-label="Next" data-label="next">
+                                    <span aria-hidden="true">&raquo;</span>
+                                </a>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+            <div class="d-block mt-5">
+                <div class="row gx-3">
+                    {% if not paginator.has_listings %}
+                    <div class="col-auto my-2">
+                        <p class="display-5">We're sorry, but we couldn't find any listings that match your specific
+                            criteria. It's possible that there are currently no items available that meet your search
+                            parameters. Consider broadening your search or adjusting the filters to discover more
+                            listings. If you have any specific requirements or if you need assistance, feel free to
+                            reach out to our support team. Thank you for using our platform!</p>
+                    </div>
+                    {% endif %}
+                    {% for listing in paginator.get_listings %}
+                    <div class="col-lg-3 col-md-6 col-12 my-2">
+                        <a class="page-link" href="{% url 'view-listing' listing.title %}">
+                            <div class="card">
+                                <img src="{{ listing.image.url }}" class="img-fluid listing-image" href="">
+                                <div class="px-3 py-2">
+                                    <div class="mt-2">
+                                        <h5 class="my-0 text-truncate">{{listing.title}}</h5>
+                                        <p class="text-muted my-0">{{listing.get_condition_display}}</p>
+                                    </div>
+                                    <div class="mt-3">
+                                        <strong>${{listing.get_current_price}}</strong>
+                                        <p class="text-muted my-0">{{listing.get_buying_format_display}}</p>
+                                        <div class="d-block mt-3">
+                                            {% if listing.free_shipping %}
+                                            <p class="float-start text-muted fs-6"> <mark>Free Shipping</mark></p>
+                                            {% endif %}
+                                            <p class="float-end text-muted fs-6"><i class="bi bi-geo-alt-fill"></i>
+                                                {{listing.get_location_display}}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
 </section>
+<button id="scroll-to-to-btn" class="btn btn-primary rounded-circle">
+    <i class="bi bi-arrow-up"></i>
+</button>
+<script>
+    $(document).ready(function () {
+        var baseUrl = window.location.protocol + "//" + window.location.hostname + (window.location.port ? ":" + window.location.port : "") + "/filter/";
+        var currentPage = 1
+        var delay = 500;
+        var rangeTimeout;
+        const mobileScreenWidth = 768;
+        var sortOption = 'best-match'
+
+        function attachSortOptionListener() {
+            $('.sort-option').click(function () {
+                sortOption = $(this).data('sort');
+                updateListings();
+            });
+        }
+
+        // Show/hide the scroll-to-top button based on scroll position
+        $(window).scroll(function () {
+            if ($(this).scrollTop() > 100) {
+                $('#scroll-to-to-btn').fadeIn();
+            } else {
+                $('#scroll-to-to-btn').fadeOut();
+            }
+        });
+
+        // Scroll to top when the button is clicked
+        $('#scroll-to-to-btn').click(function () {
+            $('html, body').animate({ scrollTop: 0 }, 200);
+            return false;
+        });
+
+        // Handle checkbox change event
+        $('.filter-checkbox').change(updateListings);
+
+        $('#mobile_price_range').on('input', function () {
+            // Clear the previous timeout
+            clearTimeout(rangeTimeout);
+            // Set a new timeout to call the updateListings function after the specified delay
+            rangeTimeout = setTimeout(updateListings, delay);
+        });
+
+
+        // Handle range input change event
+        $('#desktop_price_range').on('input', function () {
+            // Clear the previous timeout
+            clearTimeout(rangeTimeout);
+            // Set a new timeout to call the updateListings function after the specified delay
+            rangeTimeout = setTimeout(updateListings, delay);
+        });
+
+        $(document).on('click', '.page-link', function () {
+            var val = $(this).data('label');
+            if (val == "previous") {
+                if (currentPage > 1) {
+                    currentPage = currentPage - 1;
+                }
+            }
+            else if (val == "next") {
+                currentPage = currentPage + 1;
+            }
+
+            else {
+                currentPage = val;
+            }
+            updateListings();
+
+        });
+
+        // Handle remove filter click event
+        $(document).on('click', '.remove-filter', function () {
+            var labelToRemove = $(this).data('label');
+            $('.filter-checkbox[data-filter-type="' + labelToRemove + '"]').prop('checked', false);
+
+            // Trigger the updateListings function
+            updateListings();
+        });
+
+        attachSortOptionListener();
+
+        function updateListings() {
+            var selectedFilters = {
+                'page': currentPage,
+                'sort': sortOption
+            };
+
+            // Collect selected filters
+            $('.filter-checkbox:checked').each(function () {
+                var filterType = $(this).data('filter-type');
+                var filterValue = $(this).val();
+                if (!selectedFilters.hasOwnProperty(filterType)) {
+                    selectedFilters[filterType] = [];
+                }
+
+                // Add the filter value to the array
+                selectedFilters[filterType].push(filterValue);
+            });
+
+            var rangeValue = $('#desktop_price_range').val();
+
+            if (window.innerWidth < mobileScreenWidth) {
+                var rangeValue = $('#mobile_price_range').val();
+            }
+            selectedFilters['price_range'] = [rangeValue];
+
+            // Construct the URL with query parameters
+            var dynamicUrl = baseUrl + "?" + $.param(selectedFilters);
+
+            // Send AJAX request to update listings
+            $.ajax({
+                type: 'GET',
+                url: dynamicUrl,
+                success: function (data) {
+                    $('#listings-container').html(data);
+                    attachSortOptionListener();
+                },
+                error: function () {
+                    console.error('Error occurred while updating listings.');
+                }
+            });
+        }
+    });
+
+
+</script>
+<script defer>
+    document.addEventListener("DOMContentLoaded", function () {
+        var categoryLinks = document.querySelectorAll('.category-link');
+        categoryLinks.forEach(function (link) {
+            link.addEventListener('click', function (e) {
+                e.preventDefault();
+                var categoryValue = this.getAttribute('data-category');
+
+                // Uncheck all other category checkboxes
+                var checkboxes = document.querySelectorAll('.category-checkbox');
+                var target_checkbox = null
+                checkboxes.forEach(function (checkbox) {
+                    if (checkbox.value !== categoryValue) {
+                        checkbox.checked = false;
+                    }
+                    else {
+                        target_checkbox = checkbox
+                    }
+                });
+
+                target_checkbox.checked = true;
+                // Trigger the change event to execute the filtering script
+                var event = new Event('change');
+                target_checkbox.dispatchEvent(event);
+
+                // Scroll to the listings-section
+                var listingsSection = document.getElementById('listings-section');
+                if (listingsSection) {
+                    listingsSection.scrollIntoView({ behavior: 'smooth' });
+                }
+            });
+        });
+    });
+</script>
+
+
 {% endblock %}

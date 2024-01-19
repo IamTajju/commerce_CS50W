@@ -1,20 +1,20 @@
 from django.shortcuts import render
 from django.contrib.auth import authenticate, login, logout
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseBadRequest
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.urls import reverse
-from django.db import IntegrityError
 from django.views.decorators.csrf import csrf_exempt
-import jwt
-from jwt.algorithms import get_default_algorithms
-from google.oauth2 import id_token
-from google.auth.transport import requests
 from .models import *
-
-# Create your views here.
+from .forms import *
+from .utils import get_user_data_from_google, send_token
+import uuid
+from django.conf import settings
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 
 
 def login_view(request):
+    logout(request)
     if request.method == "POST":
         # Attempt to sign user in
         username = request.POST["username"]
@@ -33,55 +33,210 @@ def login_view(request):
         return render(request, "users/login.html")
 
 
-# Logs out
 def logout_view(request):
     logout(request)
     return HttpResponseRedirect(reverse("index"))
 
 
-# Register Page
 def register(request):
-    if request.method == "POST":
-        username = request.POST["username"]
-        email = request.POST["email"]
-
-        # Ensure password matches confirmation
-        password = request.POST["password"]
-        confirmation = request.POST["confirmation"]
-        if password != confirmation:
-            return render(request, "users/register.html", {
-                "message": "Passwords must match."
-            })
-
-        # Attempt to create new user
-        try:
-            user = User.objects.create_user(username, email, password)
+    logout(request)
+    if request.method == 'POST':
+        form = UserRegistrationForm(request.POST, request.FILES)
+        if form.is_valid():
+            user = form.save()
+            # user.is_active = False
             user.save()
-        except IntegrityError:
-            return render(request, "users/register.html", {
-                "message": "Username already taken."
-            })
-        login(request, user)
-        return HttpResponseRedirect(reverse("index"))
+            # Redirect to verification pending page
+            return render(request, 'users/check-email-page.html', {"title": 'Verify Your Email', "message": "Click on the link sent to your email address to verify your account."})
     else:
-        return render(request, "users/register.html")
+        form = UserRegistrationForm()
+
+    return render(request, 'users/register.html', {'form': form})
+
+
+def change_or_create_password(request, token, username):
+    logout(request)
+    user = User.objects.get(username=username)
+    if request.method == 'GET':
+        form = UserPasswordChangeForm()
+        if str(user.forget_password_token) != str(token):
+            return render(request, 'users/success-fail-page.html', {'success': False, 'title': 'Password Change Failed', 'message': 'Account has been locked for suspicious activity, contact site administrator for details.'})
+
+    if request.method == 'POST':
+        form = UserPasswordChangeForm(request.POST, instance=user)
+        if form.is_valid():
+            user = form.save()
+            user.is_active = True
+            user.is_oauth_registered = False
+            user.forget_password_token = None
+            user.save()
+            login(request, user)
+            return render(request, 'users/success-fail-page.html', {'success': True, 'title': 'Password Change Process Completed', 'message': 'Your password has been changed successfully!'})
+
+    return render(request, 'users/change-password.html', {'form': form, 'token': token, 'username': username})
+
+
+def verify_email(request, token, username, type):
+    logout(request)
+    user = User.objects.get(username=username)
+
+    if type == 'password':
+        if str(user.forget_password_token) == str(token):
+            return HttpResponseRedirect(reverse('change-password', args=[token, username]))
+
+    if str(user.email_verification_token) == str(token):
+        user.email_verification_token = None
+
+        if user.is_oauth_registered:
+            password_token = str(uuid.uuid4())
+            user.forget_password_token = password_token
+            user.save()
+            return HttpResponseRedirect(reverse('change-password', args=[password_token, username]))
+
+        user.is_active = True
+        user.save()
+        login(request, user)
+        return render(request, 'users/success-fail-page.html', {'success': True, 'title': 'Email Verification Successful', 'message': 'Email verification process was successful, your account is active.'})
+    else:
+        return render(request, 'users/success-fail-page.html', {'success': False, 'title': 'Email Verification Failed', 'message': 'Email verification process failed, please register again.'})
+
+
+def forgot_password(request):
+    try:
+        user = request.user
+        password_token = str(uuid.uuid4())
+        user.forget_password_token = password_token
+        user.save()
+        send_token(user, password_token, 'password')
+        return render(request, 'users/check-email-page.html', {"title": 'Verify Your Email', "message": "Click on the link sent to your email address to change your password"})
+
+    except Exception as e:
+        return render(request, 'users/success-fail-page.html', {'success': False, 'title': 'Failed', 'message': 'Password change process failed, please register again.'})
+
+
+@login_required(login_url=settings.LOGIN_URL)
+def user_profile(request):
+    user = request.user
+    user_dict = {'username': user.username, 'email': user.email}
+    form = UserUpdateForm(initial=user_dict)
+
+    if request.method == 'POST':
+        user_dict.update({item: value for item, value in request.POST.items()})
+
+        if not request.FILES:
+            form = UserUpdateForm(
+                user_dict, instance=user)
+        else:
+            form = UserUpdateForm(
+                user_dict, request.FILES, instance=user)
+
+        if form.is_valid():
+            form.save()
+            if 'email' in form.changed_data:
+                return render(request, 'users/check-email-page.html', {"title": 'Verify Your Email', "message": "Click on the link sent to your email address to verify your new email address and reactivate your account."})
+
+            return HttpResponseRedirect(reverse('profile'))
+
+    elif request.method == 'GET' and 'remove_picture' in request.GET:
+        # Remove the display picture and set the default image
+        user.display_picture.delete()
+        user.display_picture = 'display-pictures/default-dp.png'
+        user.save()
+        return redirect('profile')
+
+    return render(request, 'users/profile.html', {'user': user, 'form': form})
 
 
 @csrf_exempt
 def google_auth_receiver(request):
-    csrf_token_cookie = request.COOKIES.get('g_csrf_token')
-    if not csrf_token_cookie:
-        return HttpResponseBadRequest('No CSRF token in Cookie.')
-    csrf_token_body = request.POST.get('g_csrf_token')
-    if not csrf_token_body:
-        return HttpResponseBadRequest('No CSRF token in post body.')
-    if csrf_token_cookie != csrf_token_body:
-        return HttpResponseBadRequest('Failed to verify double submit cookie.')
+    user_info = get_user_data_from_google(request)
+    try:
+        user = User.objects.get(
+            email=user_info['email'])
+        login(request, user)
+        return HttpResponseRedirect(reverse("index"))
+    except User.DoesNotExist:
+        # Create the user instance
+        user_instance = User.objects.create(
+            username=user_info['username'],
+            email=user_info['email'],
+            first_name=user_info['given_name'],
+            last_name=user_info['family_name'],
+            is_oauth_registered=True
+        )
 
-    token = request.POST.get('credential')
-    request = requests.Request()
-    id_info = id_token.verify_oauth2_token(
-        token, request, '100295696058-7iois28fokoq4u65v5jc1mhmk0feual0.apps.googleusercontent.com')
+        # Save Display picture
+        user_instance.save_image_from_url(user_info['picture'])
+        login(request, user_instance)
+        return HttpResponseRedirect(reverse("index"))
 
-    print(id_info)
-    return HttpResponse("ok")
+
+@login_required(login_url=settings.LOGIN_URL)
+def payment_method_form_view(request, redirect=None):
+    payment_method_form = PaymentMethodForm()
+    card_payment_form = CardPaymentForm()
+    bkash_payment_form = BkashPaymentForm()
+    if redirect:
+        request.session['listing_title'] = redirect
+
+    if request.method == 'POST':
+        payment_method_form = PaymentMethodForm(request.POST)
+
+        if payment_method_form.is_valid():
+            payment_option = payment_method_form.cleaned_data['payment_option']
+            user = request.user  # Assuming the user is authenticated
+
+            # Save the PaymentMethod
+            payment_method = payment_method_form.save(commit=False)
+            payment_method.user = user
+            payment_method.save()
+            # Save the specific payment method based on the user's choice
+            if payment_option == PaymentMethod.PaymentOption.CREDIT_CARD or payment_option == PaymentMethod.PaymentOption.DEBIT_CARD:
+                card_payment_form = CardPaymentForm(request.POST)
+                if card_payment_form.is_valid():
+                    card_payment = card_payment_form.save(commit=False)
+                    card_payment.payment_method = payment_method
+                    card_payment.save()
+                    messages.success(
+                        request, 'Payment method added successfully.')
+
+                else:
+                    payment_method.delete()
+
+            elif payment_option == PaymentMethod.PaymentOption.BKASH:
+                bkash_payment_form = BkashPaymentForm(request.POST)
+                if bkash_payment_form.is_valid():
+                    bkash_payment = bkash_payment_form.save(commit=False)
+                    bkash_payment.payment_method = payment_method
+                    bkash_payment.save()
+                    messages.success(
+                        request, 'Payment method added successfully.')
+
+                else:
+                    payment_method.delete()
+
+            # return redirect('bid_form')
+
+    return render(request, 'users/payment-method-form.html', {
+        'payment_method_form': payment_method_form,
+        'card_payment_form': card_payment_form,
+        'bkash_payment_form': bkash_payment_form,
+    })
+
+
+@login_required(login_url=settings.LOGIN_URL)
+def shipping_address_form_view(request, redirect=None):
+    form = AddressForm
+    if redirect:
+        request.session['listing_title'] = redirect
+
+    if request.method == 'POST':
+        form = AddressForm(request.POST)
+        if form.is_valid():
+            address = form.save(commit=False)
+            address.user = request.user
+            address.save()
+            messages.success(
+                request, 'Shipping Address was added successfully.')
+
+    return render(request, 'users/shipping-address-form.html', {'form': form})
