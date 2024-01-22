@@ -1,0 +1,71 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+<div class="backdrop">
+</div>
+<div class="container-fluid p-5 overlap-container">
+    <div class="row align-items-start justify-content-center">
+        <div class="col-xl-3 col-12 mt-xl-4 mt-4">
+            <ul class="list-group list-group-flush border rounded shadow">
+                <li class="list-group-item d-flex justify-content-start align-items-center py-4 border-none">
+                    <img src="{{user.display_picture.url}}" class="thumbnail-image">
+                    <div class="ms-3 fw-medium">
+                        {{request.user.email}}
+                        <br>
+                        <small class="fw-bold highlighted-text">{{request.user.username}}</small>
+                    </div>
+                </li>
+                <li class="list-group-item list-bg d-flex justify-content-between align-items-center fw-bold lead">
+                    Dashboard
+                </li>
+                <li class="list-group-item list d-flex justify-content-between align-items-center lead py-3 fs-6">
+                    <span><i class="bi bi-bag"></i> Bids</span>
+                    <span class="badge badge-bd rounded-pill">1</span>
+                </li>
+                <li class="list-group-item list d-flex justify-content-between align-items-center lead py-3 fs-6">
+                    <span><i class="bi bi-card-list"></i> Listings </span>
+                    <span class="badge badge-bd rounded-pill">1</span>
+                </li>
+                <li class="list-group-item list d-flex justify-content-between align-items-center lead py-3 fs-6">
+                    <span><i class="bi bi-map"></i> Shipping Addresses</span>
+                    <span class="badge badge-bd rounded-pill">1</span>
+                </li>
+                <li class="list-group-item list d-flex justify-content-between align-items-center lead py-3 fs-6">
+                    <span><i class="bi bi-credit-card-2-back"></i> Payment Methods</span>
+                    <span class="badge badge-bd rounded-pill">1</span>
+                </li>
+            </ul>
+        </div>
+        <div class="col-xl-8 col-12 mt-xl-0 mt-5">
+            <div class="px-xl-5 px-0 py-3" id="user-profile-content-container">
+                {% block child %}
+                {% endblock child%}
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    function confirmChange() {
+        const customSuccessColor = getComputedStyle(document.documentElement).getPropertyValue('--custom-success');
+        const customDarkColor = getComputedStyle(document.documentElement).getPropertyValue('--custom-dark');
+        Swal.fire({
+            title: 'Are you sure?',
+            text: 'Email/Password change process will deactivate your account till you have verified it.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: customSuccessColor,
+            cancelButtonColor: customDarkColor,
+            confirmButtonText: 'Yes, change it!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Perform the action if the user confirms
+                document.getElementById('email-form-button').innerHTML = `
+                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                    Loading...
+                `;
+                document.getElementById('email-form').submit();
+            }
+        });
+    }
+</script>
+{% endblock %}

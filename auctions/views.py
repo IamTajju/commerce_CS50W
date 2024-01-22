@@ -124,10 +124,6 @@ def comment(request, title):
 
     return HttpResponseRedirect(reverse('view-listing', args=[title]))
 
-
-def confirm_purchase(request):
-    return render(request, "auctions/confirm-purchase.html")
-
 # Adds Listing to Watchlist and returns to Listing Details Page
 
 
@@ -224,21 +220,16 @@ def closeListing(request, title):
 
 # Summary page of all the user's bids
 @login_required(login_url=settings.LOGIN_URL)
-def userBids(request):
-    bids = Bid.objects.filter(bidBy=request.user)
+def user_bids(request):
+    bids = Bid.objects.filter(bid_by=request.user)
 
-    activeBids = []
-    closedBids = []
-    for bid in bids:
-        if (bid.listing.active == True):
-            activeBids.append(bid)
-        else:
-            closedBids.append(bid)
+    active_ao_bids = bids.filter(
+        listing__active=True, listing__buying_format=Listing.BuyingFormat.ACCEPT_OFFER)
+    closed_bids = bids.filter(listing__active=True)
 
-    return render(request, "auctions/bids.html", {
-        "activeBids": activeBids,
-        "closedBids": closedBids,
-        "categories": getAllCategories()
+    return render(request, "auctions/bids-table.html", {
+        "active_ao_bids": active_ao_bids,
+        "closed_bids": closed_bids,
     })
 
 

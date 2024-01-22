@@ -7,10 +7,12 @@ from django.views.decorators.csrf import csrf_exempt
 from .models import *
 from .forms import *
 from .utils import get_user_data_from_google, send_token
+from auctions.utils import get_field_name_display
 import uuid
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+import time
 
 
 def login_view(request):
@@ -122,7 +124,6 @@ def user_profile(request):
 
     if request.method == 'POST':
         user_dict.update({item: value for item, value in request.POST.items()})
-
         if not request.FILES:
             form = UserUpdateForm(
                 user_dict, instance=user)
@@ -133,8 +134,10 @@ def user_profile(request):
         if form.is_valid():
             form.save()
             if 'email' in form.changed_data:
-                return render(request, 'users/check-email-page.html', {"title": 'Verify Your Email', "message": "Click on the link sent to your email address to verify your new email address and reactivate your account."})
-
+                return HttpResponse(render(request, 'users/check-email-page.html', {"title": 'Verify Your Email', "message": "Click on the link sent to your new email address to verify your new email address and reactivate your account."}))
+            if form.changed_data:
+                messages.success(
+                    request, f'{get_field_name_display(("_".join(field for field in form.changed_data)))} changed successfully!')
             return HttpResponseRedirect(reverse('profile'))
 
     elif request.method == 'GET' and 'remove_picture' in request.GET:
@@ -144,7 +147,7 @@ def user_profile(request):
         user.save()
         return redirect('profile')
 
-    return render(request, 'users/profile.html', {'user': user, 'form': form})
+    return render(request, 'users/profile-details.html', {'user': user, 'form': form, })
 
 
 @csrf_exempt
@@ -153,10 +156,15 @@ def google_auth_receiver(request):
     try:
         user = User.objects.get(
             email=user_info['email'])
+        if not user.is_active:
+            return HttpResponse(render(request, 'users/check-email-page.html', {"title": 'Verify Your Email', "message": "Click on the link sent to your email address to verify your new email address and reactivate your account."}))
         login(request, user)
         return HttpResponseRedirect(reverse("index"))
     except User.DoesNotExist:
         # Create the user instance
+        if User.objects.filter(previous_email=user_info['email']):
+            return HttpResponse(render(request, 'users/check-email-page.html', {"title": 'Verify Your Email', "message": "Click on the link sent to your email address to verify your new email address and reactivate your account."}))
+
         user_instance = User.objects.create(
             username=user_info['username'],
             email=user_info['email'],

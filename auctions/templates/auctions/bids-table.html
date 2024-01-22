@@ -1,0 +1,41 @@
+{% extends "users/profile-layout.html" %}
+
+{% block child%}
+<h4 class="display-6">Offers Made</h4>
+<table class="table table-hover">
+    <thead class="fw-light align-top">
+        <tr>
+            <th scope="col">Sl No</th>
+            <th scope="col">Product Image</th>
+            <th scope="col">Listing Title</th>
+            <th scope="col">Buying Format</th>
+            <th scope="col">Starting Price</th>
+            <th scope="col">Your Offer</th>
+            <th scope="col">Counter Offer</th>
+            <th scope="col">Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for bid in active_ao_bids%}
+        <tr>
+            <td>{{forloop.counter}}</td>
+            <td><img src="{{ bid.listing.image.url }}" width="60px"></td>
+            <td><a href="{% url 'view-listing' bid.listing.title%}" style="color: #2E2E2E">{{ bid.listing }}</a></td>
+            <td>{{bid.listing.get_buying_format_display}}</td>
+            <td>৳ {{ bid.listing.startBid }}</td>
+            <td>৳ {{ bid.amount }}</td>
+            {% if forloop.counter == 1 %}
+            <td><span class="badge badge-bg-danger small-custom">Pending</span></td>
+            {% else %}
+            <td class="me-5">
+                <span class="badge badge-bg-success small-custom">৳ {{ bid.listing.get_current_price}}</span>
+            </td>
+            {% endif %}
+            <td class="me-5"><button
+                    class="btn btn-success btn-sm small-custom {% if forloop.counter == 1 %} disabled{% endif %}">Accept?</button>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock child %}

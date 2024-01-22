@@ -1,16 +1,28 @@
 from django import forms
-from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.forms import UserCreationForm, PasswordChangeForm, UserChangeForm
 from django.contrib.auth import get_user_model
 from django.utils.functional import cached_property
 from django.forms import FileInput
 from .models import *
 from .validators import *
+from django.core.validators import EmailValidator
 
 
 User = get_user_model()
 
 
-class UserRegistrationForm(UserCreationForm):
+class FormErrorClassMixin:
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field_name in self.fields:
+            field = self.fields[field_name]
+            field.widget.attrs['placeholder'] = field.label
+            field.widget.attrs['class'] = 'form-control'
+            if field_name in self.errors:
+                field.widget.attrs['class'] += ' is-invalid'
+
+
+class UserRegistrationForm(FormErrorClassMixin, UserCreationForm):
     display_picture = forms.ImageField(
         required=False, help_text='Optional. Upload a display picture.')
 
@@ -19,34 +31,17 @@ class UserRegistrationForm(UserCreationForm):
         fields = ['username', 'email',
                   'display_picture', 'password1', 'password2']
 
-    def __init__(self, *args, **kwargs):
-        super(UserRegistrationForm, self).__init__(*args, **kwargs)
-        for field_name in self.fields:
-            field = self.fields[field_name]
-            field.widget.attrs['placeholder'] = field.label
-            field.widget.attrs['class'] = 'form-control'
 
-            if field_name in self.errors:
-                field.widget.attrs['class'] += ' is-invalid'
-
-
-class UserPasswordChangeForm(UserCreationForm):
+class UserPasswordChangeForm(FormErrorClassMixin, UserCreationForm):
     class Meta:
         model = User
         fields = ['password1', 'password2']
 
-    def __init__(self, *args, **kwargs):
-        super(UserPasswordChangeForm, self).__init__(*args, **kwargs)
-        for field_name in self.fields:
-            field = self.fields[field_name]
-            field.widget.attrs['placeholder'] = field.label
-            field.widget.attrs['class'] = 'form-control'
 
-            if field_name in self.errors:
-                field.widget.attrs['class'] += ' is-invalid'
+class UserUpdateForm(FormErrorClassMixin, UserChangeForm):
+    display_picture = forms.ImageField(
+        required=False, help_text='Optional. Upload a display picture.')
 
-
-class UserUpdateForm(forms.ModelForm):
     class Meta:
         model = User
         fields = ['username', 'email', 'display_picture']
@@ -55,11 +50,9 @@ class UserUpdateForm(forms.ModelForm):
         super(UserUpdateForm, self).__init__(*args, **kwargs)
         for field_name in self.fields:
             field = self.fields[field_name]
-            field.widget.attrs['class'] = 'form-control'
-            field.help_text = None
-            field.label = None
 
             if self.initial.get('username', None):
+                field.help_text = ""
                 field.widget.attrs['placeholder'] = self.initial.get(
                     'username')
 
@@ -68,37 +61,35 @@ class UserUpdateForm(forms.ModelForm):
                     'email')
 
             if field_name == 'email':
-                field.help_text = "Please enter a valid email address, email change process will deactivate your account till you've verified it"
+                field.help_text = "Email change will temporarily deactivate your account."
                 field.widget.attrs['aria-label'] = "Email"
                 field.widget.attrs['aria-describedby'] = "basic-addon1"
 
             if field_name == 'username':
+                field.help_text = "Username must be unique."
                 field.widget.attrs['aria-label'] = "Username"
                 field.widget.attrs['aria-describedby'] = "basic-addon1"
 
-            if field_name in self.errors:
-                field.widget.attrs['class'] += ' is-invalid'
+            if field_name == 'display_picture':
+                field.help_text = "Upload JPG, GIF or PNG image. 300 x 300 required."
+                field.widget.attrs['class'] = field.widget.attrs['class'] + \
+                    " form-control-sm"
+
+            if field_name == 'password':
+                field.help_text = 'Requires email verification.'
+                field.widget.attrs['class'] = 'form-control-plaintext'
 
 
-class AddressForm(forms.ModelForm):
+class AddressForm(FormErrorClassMixin, forms.ModelForm):
     class Meta:
         model = Address
         fields = ['address_line_1', 'address_line_2', 'city']
         widgets = {
-            'address_line_1': forms.TextInput(attrs={'class': 'form-control'}),
-            'address_line_2': forms.TextInput(attrs={'class': 'form-control'}),
             'city': forms.Select(attrs={'class': 'form-select form-select-lg'}),
         }
 
-    def __init__(self, *args, **kwargs):
-        super(AddressForm, self).__init__(*args, **kwargs)
-        for field_name in self.fields:
-            field = self.fields[field_name]
-            if field_name in self.errors:
-                field.widget.attrs['class'] += ' is-invalid'
 
-
-class PaymentMethodForm(forms.ModelForm):
+class PaymentMethodForm(FormErrorClassMixin, forms.ModelForm):
     class Meta:
         model = PaymentMethod
         fields = ['payment_option']
@@ -116,7 +107,7 @@ class PaymentMethodForm(forms.ModelForm):
         ]
 
 
-class CardPaymentForm(forms.ModelForm):
+class CardPaymentForm(FormErrorClassMixin, forms.ModelForm):
 
     card_number = forms.CharField(
         max_length=16, min_length=16, validators=[card_number_validator], help_text='Enter the 16-digit Card number', label='Card Number')
@@ -130,17 +121,6 @@ class CardPaymentForm(forms.ModelForm):
     class Meta:
         model = CardPayment
         fields = ['card_name', 'card_number', 'cvc_code', 'expiration_date']
-
-    def __init__(self, *args, **kwargs):
-        super(CardPaymentForm, self).__init__(*args, **kwargs)
-        for field_name in self.fields:
-            field = self.fields[field_name]
-            field.widget.attrs['placeholder'] = field.label
-            field.widget.attrs['class'] = 'form-control'
-            field.widget.attrs['aria-describedby'] = field.label
-
-            if field_name in self.errors:
-                field.widget.attrs['class'] += ' is-invalid'
 
     def clean_card_number(self):
         card_number = self.cleaned_data['card_number']
@@ -158,8 +138,8 @@ class CardPaymentForm(forms.ModelForm):
         return expiration_date
 
 
-class BkashPaymentForm(forms.ModelForm):
-    phone_number = forms.CharField(max_length=15, min_length=12, validators=[
+class BkashPaymentForm(FormErrorClassMixin, forms.ModelForm):
+    phone_number = forms.CharField(max_length=15, min_length=11, validators=[
         phone_number_validator],
         help_text='Enter a valid Bangladeshi phone number. (e.g., 017XXXXXXXX)',
         label='Bkash Number',
@@ -172,10 +152,3 @@ class BkashPaymentForm(forms.ModelForm):
     class Meta:
         model = BkashPayment
         fields = ['phone_number']
-
-    def __init__(self, *args, **kwargs):
-        super(BkashPaymentForm, self).__init__(*args, **kwargs)
-        for field_name in self.fields:
-            field = self.fields[field_name]
-            if field_name in self.errors:
-                field.widget.attrs['class'] += ' is-invalid'

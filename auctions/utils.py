@@ -9,6 +9,11 @@ from operator import and_, or_
 import math
 # Gets the list of active categories
 
+def get_field_name_display(field_name):
+    # Remove underscores and capitalize each word
+    formatted_data = ' '.join(word.capitalize() for word in field_name.split('_'))
+    return formatted_data
+
 
 def user_has_bid(user, listing):
     if Bid.objects.filter(listing=listing, bid_by=user).exists():

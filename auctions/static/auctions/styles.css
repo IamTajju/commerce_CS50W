@@ -10,12 +10,64 @@
     /* Replace with your preferred success color */
 }
 
+.overlap-container {
+    margin-top: -200px;
+}
+
+.small-custom {
+    font-size: 12px;
+}
+
+.backdrop {
+    width: 100%;
+    min-height: 200px;
+    background-color: var(--custom-bg);
+}
+
+.thumbnail-image {
+    width: 90px;
+    height: 90px;
+    overflow: hidden;
+    object-fit: cover;
+    border-radius: 10%;
+}
+
+.badge-bd {
+    background-color: #F6F9FC;
+    border-color: #F6F9FC;
+    color: #959DAE;
+}
+
+.list-bg {
+    background-color: #F6F9FC;
+    border-color: #F6F9FC;
+    color: #959DAE;
+}
+
+.list:hover {
+    color: #90ADC2;
+}
+
+.highlighted-text {
+    color: #90ADC2;
+}
+
 .success-icon {
     color: #D1E6DD;
 }
 
 .warning-icon {
     color: #F8D7D9;
+}
+
+.badge-bg-danger {
+    background-color: var(--custom-danger);
+    border-color: var(--custom-danger);
+}
+
+.badge-bg-success {
+    background-color: var(--custom-success);
+    border-color: var(--custom-success);
 }
 
 /* Override Bootstrap's primary button color */
@@ -371,6 +423,9 @@ body {
 
 
 @media (max-width: 768px) {
+    .overlap-container {
+        margin-top: -220px;
+    }
 
     .context {
         width: 100%;

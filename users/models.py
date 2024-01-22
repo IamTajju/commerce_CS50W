@@ -23,6 +23,8 @@ class User(AbstractUser):
     forget_password_token = models.CharField(
         max_length=200, null=True, blank=True)
 
+    previous_email = models.EmailField(null=True, default=None)
+
     def __str__(self):
         return f"{self.username}"
 

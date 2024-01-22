@@ -16,7 +16,9 @@ def send_email_token(sender, instance, **kwargs):
             send_token(instance, token, 'email')
 
     else:
-        if (instance.email != User.objects.get(id=instance.id).email):
+        previous_email = User.objects.get(id=instance.id).email
+        if (instance.email != previous_email):
+            instance.previous_email = previous_email
             instance.is_active = False
             token = str(uuid.uuid4())
             instance.email_verification_token = token
