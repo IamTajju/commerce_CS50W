@@ -114,7 +114,7 @@ class Paginator:
         if self.sort_option == 'high-to-low':
             return self.listings.annotate(
                 current_price=Coalesce(
-                    Max('bid__price', filter=~Q(bid=None)),
+                    Max('bid__amount', filter=~Q(bid=None)),
                     F('startBid'),
                     output_field=IntegerField()
                 )
@@ -122,7 +122,7 @@ class Paginator:
         elif self.sort_option == 'low-to-high':
             return self.listings.annotate(
                 current_price=Coalesce(
-                    Max('bid__price', filter=~Q(bid=None)),
+                    Max('bid__amount', filter=~Q(bid=None)),
                     F('startBid'),
                     output_field=IntegerField()
                 )

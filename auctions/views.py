@@ -220,16 +220,26 @@ def closeListing(request, title):
 
 # Summary page of all the user's bids
 @login_required(login_url=settings.LOGIN_URL)
-def user_bids(request):
+def counter_offers(request):
     bids = Bid.objects.filter(bid_by=request.user)
 
-    active_ao_bids = bids.filter(
+    counter_offers = bids.filter(
         listing__active=True, listing__buying_format=Listing.BuyingFormat.ACCEPT_OFFER)
-    closed_bids = bids.filter(listing__active=True)
 
-    return render(request, "auctions/bids-table.html", {
-        "active_ao_bids": active_ao_bids,
-        "closed_bids": closed_bids,
+    return render(request, "auctions/counter-offers.html", {
+        "counter_offers": counter_offers,
+    })
+
+
+@login_required(login_url=settings.LOGIN_URL)
+def ongoing_bids(request):
+    bids = Bid.objects.filter(bid_by=request.user)
+
+    ongoing_bids = bids.filter(
+        listing__active=True, listing__buying_format=Listing.BuyingFormat.AUCTION)
+
+    return render(request, "auctions/ongoing-bids.html", {
+        "ongoing_bids": ongoing_bids,
     })
 
 

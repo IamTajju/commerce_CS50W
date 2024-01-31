@@ -1,0 +1,94 @@
+{% extends "users/profile-layout.html" %}
+
+{% block child%}
+<h4 class="display-6">Counter Offers</h4>
+<table class="table table-hover shadow-sm" id="counter-offer-table">
+    <thead class="align-top">
+        <tr>
+            <th scope="col">Sl No</th>
+            <th scope="col">Product Image</th>
+            <th scope="col">Listing Title</th>
+            <th scope="col">Starting Price</th>
+            <th scope="col">Your Offer</th>
+            <th scope="col">Counter Offer</th>
+            <th scope="col">Accept Offer?</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for bid in counter_offers%}
+        <tr>
+            <td>{{forloop.counter}}</td>
+            <td><img src="{{ bid.listing.image.url }}" width="80px"></td>
+            <td><a href="{% url 'view-listing' bid.listing.title%}" style="color: #2E2E2E">{{ bid.listing }}</a></td>
+            <td>৳ {{ bid.listing.startBid }}</td>
+            <td>৳ {{ bid.amount }}</td>
+            {% if forloop.counter == 1 %}
+            <td><span class="badge badge-bg-danger fs-6">Pending</span></td>
+            {% else %}
+            <td class="me-5">
+                <span class="badge badge-bg-success fs-6">৳ {{ bid.listing.get_current_price}}</span>
+            </td>
+            {% endif %}
+            <td class="me-5">
+                {% if forloop.counter == 1 %}
+                <div>
+                    <p class="text-muted text-decoration-line-through font-monospace">Accept Offer</p>
+                </div>
+                {% else %}
+                <div class="d-flex ">
+                    <button class="btn btn-success btn-sm small-custom mx-1 counter-offer-btn"
+                        onClick="confirmOffer()"><i class="bi bi-check-lg"></i></button>
+                    <button class="btn btn-danger btn-sm small-custom mx-1 counter-offer-btn" onClick="rejectOffer()"><i
+                            class="bi bi-x-lg"></i></button>
+                </div>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+<script>
+    function confirmOffer() {
+        const customSuccessColor = getComputedStyle(document.documentElement).getPropertyValue('--custom-success');
+        const customDarkColor = getComputedStyle(document.documentElement).getPropertyValue('--custom-dark');
+        Swal.fire({
+            title: 'Accept Offer?',
+            icon: 'success',
+            showCancelButton: true,
+            confirmButtonColor: customSuccessColor,
+            cancelButtonColor: customDarkColor,
+            confirmButtonText: 'Yes, accept offer!',
+            cancelButtonText: 'Go Back'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Get all elements with the class name 'counter-offer-btn'
+                document.getElementById('counter-offer-table').innerHTML = `
+                        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                        Loading...
+                    `;
+            }
+        });
+    }
+    function rejectOffer() {
+        const customSuccessColor = getComputedStyle(document.documentElement).getPropertyValue('--custom-danger');
+        const customDarkColor = getComputedStyle(document.documentElement).getPropertyValue('--custom-dark');
+        Swal.fire({
+            title: 'Reject Offer?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: customSuccessColor,
+            cancelButtonColor: customDarkColor,
+            confirmButtonText: 'Yes, Reject offer.',
+            cancelButtonText: 'Go Back'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Get all elements with the class name 'counter-offer-btn'
+                document.getElementById('counter-offer-table').innerHTML = `
+                        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                        Loading...
+                    `;
+            }
+        });
+    }
+</script>
+{% endblock child %}
