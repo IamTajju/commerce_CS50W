@@ -63,12 +63,16 @@ def view_listing(request, title):
     open_modal = False
 
     redirect = request.session.pop('listing_title', None)
-    success_data = messages.get_messages(request)
-    if redirect or success_data:
+    if redirect or "view-listing-with-bid-form" in request.path:
         open_modal = True
 
     # Create a new BidForm instance and set its errors
-    bid_form = BidForm(listing=listing, user=request.user)
+    existing_bid = has_been_outbid(request.user, listing)
+    if existing_bid:
+        bid_form = BidForm(instance=existing_bid,
+                           listing=listing, user=request.user)
+    else:
+        bid_form = BidForm(listing=listing, user=request.user)
 
     # Retrieve bid form errors from the session
     error_data = request.session.pop('data', None)
@@ -86,6 +90,7 @@ def view_listing(request, title):
         'similar_listings': similar_listings,
         'open_modal': open_modal,
         'user_has_bid': user_has_bid(request.user, listing),
+        'has_been_outbid': existing_bid,
         'watchers': watchers,
         'total_bids': total_bids
     }
@@ -96,8 +101,11 @@ def view_listing(request, title):
 def place_bid(request, title):
     if request.method == "POST":
         listing = Listing.objects.get(title=title)
-        form = BidForm(request.POST, listing=listing,
-                       user=request.user)
+        bid = Bid.objects.filter(listing=listing, bid_by=request.user).first()
+        if bid:
+            form = BidForm(request.POST,listing=listing, user=request.user, instance=bid)
+        else:
+            form = BidForm(request.POST, listing=listing, user=request.user)
         if form.is_valid():
             form.save()
             messages.success(request, "Bid/Offer placed successfully")
@@ -241,7 +249,6 @@ def ongoing_bids(request):
     return render(request, "auctions/ongoing-bids.html", {
         "ongoing_bids": ongoing_bids,
     })
-
 
 def search(request):
     if request.method == "POST":

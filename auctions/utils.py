@@ -9,15 +9,30 @@ from operator import and_, or_
 import math
 # Gets the list of active categories
 
+
 def get_field_name_display(field_name):
     # Remove underscores and capitalize each word
-    formatted_data = ' '.join(word.capitalize() for word in field_name.split('_'))
+    formatted_data = ' '.join(word.capitalize()
+                              for word in field_name.split('_'))
     return formatted_data
 
 
 def user_has_bid(user, listing):
     if Bid.objects.filter(listing=listing, bid_by=user).exists():
         return True
+    return False
+
+
+def has_been_outbid(user, listing):
+    auction_bid = Bid.objects.filter(
+        listing=listing,
+        bid_by=user,
+        listing__buying_format=Listing.BuyingFormat.AUCTION
+    ).first()
+
+    if auction_bid is not None and auction_bid.amount < listing.get_current_price:
+        return auction_bid
+
     return False
 
 

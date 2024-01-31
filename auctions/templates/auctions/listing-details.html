@@ -43,12 +43,14 @@
             </div>
             <hr>
             <div class="d-block my-3">
-                {% if user_has_bid %}
+                {% if user_has_bid and not has_been_outbid %}
                 <a class="btn btn-primary">View Your Bid</a>
                 {% else %}
 
                 <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
-                    <i class="bi bi-bag-fill"></i>{%if listing.buying_format == 'A' %} Place Bid {% endif %}
+                    <i class="bi bi-bag-fill"></i>{%if listing.buying_format == 'A' %} {% if has_been_outbid %} Update
+                    Bid
+                    {% else %} Place Bid{% endif %} {% endif %}
                     {% if listing.buying_format == 'AO' %} Make Offer{% endif %}
                     {% if listing.buying_format == 'BIN' %} Buy Now{% endif %}
                 </button>
@@ -151,7 +153,6 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body justify-content-start">
-                {% if not messages %}
                 <form action="{% url 'place-bid' listing.title %}" method="post" class="align-items-center my-3">
                     <h5 class="lead">{%if listing.buying_format == 'A' %}Place Bid {% endif %}
                         {% if listing.buying_format == 'AO' %}Make Offer{% endif %}
@@ -184,20 +185,6 @@
                         Shipping
                         Address</small></a>
             </div>
-            {% else %}
-            {% for message in messages %}
-            <center>
-                <h1 class="{{message.tags}}-icon display-1 text-center"><i class="bi bi-check-circle"></i></h1>
-            </center>
-            <div class="messages lead text-muted text-center fs-6 mb-2">
-                {{ message }}
-            </div>
-            {% endfor %}
-            <div class="modal-footer">
-                <a class="btn btn-primary btn-sm">View Bids</a>
-                <button type="button" class="btn btn-dark btn-sm" data-bs-dismiss="modal">Close</button>
-            </div>
-            {% endif %}
         </div>
     </div>
 </div>

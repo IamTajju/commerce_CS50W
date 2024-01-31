@@ -22,4 +22,14 @@ urlpatterns = [
     path('add-shipping-address/<str:redirect>', views.shipping_address_form_view,
          name='add_shipping_address_redirect'),
 
+    path('shipping-addresses', views.view_shipping_address,
+         name='view-shipping-address'),
+    path('remove-shipping-addresses/<int:id>',
+         views.remove_shipping_address, name='remove-shipping-address'),
+    
+    path('payment-methods', views.view_payment_methods,
+         name='view-payment-methods'),
+    path('remove-payment-method/<int:id>',
+         views.remove_payment_method, name='remove-payment-method')
+
 ]

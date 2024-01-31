@@ -68,7 +68,7 @@
         {% endif %}
         {% for listing in paginator.get_listings %}
         <div class="col-lg-3 col-md-6 col-12 my-2">
-            <a class="page-link" href="{% url 'view-listing' listing.title %}">
+            <a class="text-decoration-none" href="{% url 'view-listing' listing.title %}">
                 <div class="card">
                     <img src="{{ listing.image.url }}" class="img-fluid listing-image" href="">
                     <div class="px-3 py-2">

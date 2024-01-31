@@ -10,8 +10,38 @@
     /* Replace with your preferred success color */
 }
 
+ul li a {
+    color: inherit;
+    text-decoration: none;
+}
+
+ul li a:visited {
+    color: inherit;
+}
+
+tr td a {
+    color: inherit;
+    text-decoration: none;
+}
+
 .overlap-container {
     margin-top: -200px;
+}
+
+.user-pages-header {
+    color: var(--custom-dark);
+}
+
+th {
+    font-weight: inherit;
+}
+
+.table-header {
+    font-weight: 300;
+}
+
+.table>:not(caption)>*>* {
+    color: inherit;
 }
 
 .small-custom {

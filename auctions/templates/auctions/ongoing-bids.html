@@ -1,9 +1,9 @@
 {% extends "users/profile-layout.html" %}
 
 {% block child%}
-<h4 class="display-6">Counter Offers</h4>
-<table class="table table-hover shadow-sm" id="counter-offer-table">
-    <thead class="align-top">
+<h4 class="header-4 user-pages-header">Ongoing Bids</h4>
+<table class="table table-hover shadow-sm" id="ongoing-offers-table">
+    <thead class="align-top table-header">
         <tr>
             <th scope="col">Sl No</th>
             <th scope="col">Product Image</th>
@@ -16,32 +16,24 @@
     </thead>
     <tbody>
         {% for bid in ongoing_bids%}
-        <tr>
+        <tr class="lead fs-6 align-middle">
             <td>{{forloop.counter}}</td>
-            <td><img src="{{ bid.listing.image.url }}" width="80px"></td>
-            <td><a href="{% url 'view-listing' bid.listing.title%}" style="color: #2E2E2E">{{ bid.listing }}</a></td>
+            <td><img class="rounded" src="{{ bid.listing.image.url }}" width="80px"></td>
+            <td><a href="{% url 'view-listing' bid.listing.title%}">{{ bid.listing }}</a></td>
             <td>৳ {{ bid.listing.startBid }}</td>
             <td>৳ {{ bid.amount }}</td>
-            {% if forloop.counter == 1 %}
-            <td><span class="badge badge-bg-danger fs-6">Pending</span></td>
-            {% else %}
             <td class="me-5">
-                <span class="badge badge-bg-success fs-6">৳ {{ bid.listing.get_current_price}}</span>
+                <span
+                    class="badge {% if bid.amount >= bid.listing.get_current_price %}badge-bg-success{% else %}badge-bg-danger{% endif %} fs-6">৳
+                    {{ bid.listing.get_current_price}}</span>
             </td>
-            {% endif %}
             <td class="me-5">
-                {% if forloop.counter == 1 %}
-                <div>
-                    <p class="text-muted text-decoration-line-through font-monospace">Accept Offer</p>
-                </div>
-                {% else %}
                 <div class="d-flex ">
-                    <button class="btn btn-success btn-sm small-custom mx-1 counter-offer-btn"
-                        onClick="confirmOffer()"><i class="bi bi-check-lg"></i></button>
-                    <button class="btn btn-danger btn-sm small-custom mx-1 counter-offer-btn" onClick="rejectOffer()"><i
-                            class="bi bi-x-lg"></i></button>
+                    <a class="btn {% if bid.amount >= bid.listing.get_current_price %}btn-dark disabled{%else%}btn-primary{% endif %} btn-sm small-custom mx-1"
+                        href="{% url 'view-listing-with-bid-form' bid.listing.title %}"><i class="bi bi-receipt-cutoff"
+                            href="{% url 'view-listing-with-bid-form' bid.listing.title %}"></i>
+                        Outbid</a>
                 </div>
-                {% endif %}
             </td>
         </tr>
         {% endfor %}

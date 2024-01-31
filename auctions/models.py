@@ -86,11 +86,11 @@ class Bid(models.Model):
     listing = models.ForeignKey(
         Listing, on_delete=models.CASCADE, related_name="bid")
     bid_by = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='bid')
+        User, on_delete=models.PROTECT, related_name='bid')
     shipping_address = models.ForeignKey(
-        Address, on_delete=models.CASCADE, related_name="bid")
+        Address, on_delete=models.PROTECT, related_name="bid")
     payment_method = models.ForeignKey(
-        PaymentMethod, on_delete=models.CASCADE, related_name='bid')
+        PaymentMethod, on_delete=models.PROTECT, related_name='bid')
 
     def __str__(self):
         return f"Bid by:{self.bid_by} | Bid: {self.amount} | On: {self.listing}"

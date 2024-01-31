@@ -18,13 +18,19 @@
                 <li class="list-group-item list-bg d-flex justify-content-between align-items-center fw-bold lead">
                     Dashboard
                 </li>
-                <li class="list-group-item list d-flex justify-content-between align-items-center lead py-3 fs-6">
-                    <span><i class="bi bi-clock-history"></i> Ongoing Bids</span>
-                    <span class="badge badge-bd rounded-pill">1</span>
+                <li class="list-group-item list">
+                    <a class="d-flex justify-content-between align-items-center lead py-3 fs-6"
+                        href="{% url 'ongoing-bids' %}">
+                        <span><i class="bi bi-clock-history"></i> Ongoing Bids</span>
+                        <span class="badge badge-bd rounded-pill">1</span>
+                    </a>
                 </li>
-                <li class="list-group-item list d-flex justify-content-between align-items-center lead py-3 fs-6">
-                    <span><i class="bi bi-envelope-open"></i> Counter Offers</span>
-                    <span class="badge badge-bd rounded-pill">1</span>
+                <li class="list-group-item list">
+                    <a class="d-flex justify-content-between align-items-center lead py-3 fs-6"
+                        href="{% url 'counter-offers' %}">
+                        <span><i class="bi bi-envelope-open"></i> Counter Offers</span>
+                        <span class="badge badge-bd rounded-pill">1</span>
+                    </a>
                 </li>
                 <li class="list-group-item list d-flex justify-content-between align-items-center lead py-3 fs-6">
                     <span><i class="bi bi-card-list"></i> Listings </span>
@@ -38,13 +44,19 @@
                     <span><i class="bi bi-clipboard-data"></i> Listing History</span>
                     <span class="badge badge-bd rounded-pill">1</span>
                 </li>
-                <li class="list-group-item list d-flex justify-content-between align-items-center lead py-3 fs-6">
-                    <span><i class="bi bi-map"></i> Shipping Addresses</span>
-                    <span class="badge badge-bd rounded-pill">1</span>
+                <li class="list-group-item list">
+                    <a class="d-flex justify-content-between align-items-center lead py-3 fs-6"
+                        href="{% url 'view-shipping-address' %}">
+                        <span><i class="bi bi-map"></i> Shipping Addresses</span>
+                        <span class="badge badge-bd rounded-pill">1</span>
+                    </a>
                 </li>
-                <li class="list-group-item list d-flex justify-content-between align-items-center lead py-3 fs-6">
-                    <span><i class="bi bi-credit-card-2-back"></i> Payment Methods</span>
-                    <span class="badge badge-bd rounded-pill">1</span>
+                <li class="list-group-item list">
+                    <a class="d-flex justify-content-between align-items-center lead py-3 fs-6"
+                        href="{% url 'view-payment-methods' %}">
+                        <span><i class="bi bi-credit-card-2-back"></i> Payment Methods</span>
+                        <span class="badge badge-bd rounded-pill">1</span>
+                    </a>
                 </li>
             </ul>
         </div>

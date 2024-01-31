@@ -12,7 +12,7 @@ import uuid
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-import time
+from django.db.models import ProtectedError
 
 
 def login_view(request):
@@ -169,7 +169,7 @@ def google_auth_receiver(request):
             username=user_info['username'],
             email=user_info['email'],
             first_name=user_info['given_name'],
-            last_name=user_info['family_name'],
+            last_name=user_info['family_name'] or None,
             is_oauth_registered=True
         )
 
@@ -248,3 +248,44 @@ def shipping_address_form_view(request, redirect=None):
                 request, 'Shipping Address was added successfully.')
 
     return render(request, 'users/shipping-address-form.html', {'form': form})
+
+
+@login_required(login_url=settings.LOGIN_URL)
+def view_shipping_address(request):
+    addresses = Address.objects.filter(user=request.user)
+    return render(request, 'users/shipping-addresses.html',
+                  {'addresses': addresses}
+                  )
+
+
+@login_required(login_url=settings.LOGIN_URL)
+def view_payment_methods(request):
+    methods = PaymentMethod.objects.filter(user=request.user).exclude(
+        payment_option=PaymentMethod.PaymentOption.COD)
+    return render(request, 'users/payment-methods.html',
+                  {'payment_methods': methods}
+                  )
+
+
+@login_required(login_url=settings.LOGIN_URL)
+def remove_shipping_address(request, id):
+    address = Address.objects.get(id=id)
+    if address.user == request.user:
+        try:
+            address.delete()
+        except ProtectedError:
+            messages.error(
+                request, "This address is already associated with an ongoing bid/purchase")
+    return HttpResponseRedirect(reverse('view-shipping-address'))
+
+
+@login_required(login_url=settings.LOGIN_URL)
+def remove_payment_method(request, id):
+    method = PaymentMethod.objects.get(id=id)
+    if method.user == request.user:
+        try:
+            method.delete()
+        except ProtectedError:
+            messages.error(
+                request, "This payment is already associated with an ongoing bid/purchase")
+    return HttpResponseRedirect(reverse('view-payment-methods'))

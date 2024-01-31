@@ -1,0 +1,44 @@
+{% extends "users/profile-layout.html" %}
+
+{% block child%}
+<h4 class="header-4 user-pages-header">List of registered Addresses:</h4>
+<table class="table table-hover shadow-sm" id="shipping-address-table">
+    <thead class="align-top table-header">
+        <tr>
+            <th scope="col">Sl No</th>
+            <th scope="col">Address</th>
+            <th scope="col">Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for address in addresses%}
+        <tr class="lead fs-6 align-middle">
+            <td>{{forloop.counter}}</td>
+            <td>{{address}}</td>
+            <td><a onclick="confirmDelete({{ address.id }})"><i class="bi bi-trash-fill"></i></a></td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+<a class="btn btn-primary float-end mt-5" href="{% url 'add_shipping_address' %}"><i class="bi bi-plus"></i> Add New
+    Address</a>
+
+<script>
+    function confirmDelete(addressId) {
+        Swal.fire({
+            title: 'Are you sure?',
+            text: 'You won\'t be able to revert this!',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, delete it!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // User clicked "Yes, delete it!" - perform the deletion action
+                window.location.href = "{% url 'remove-shipping-address' 0 %}".replace('0', addressId);
+            }
+        });
+    }
+</script>
+{% endblock child %}
