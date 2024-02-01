@@ -169,8 +169,8 @@ def createListing(request):
 
         if form.is_valid():
             listing = form.cleaned_data
-            newListing = Listing(title=listing['title'], description=listing['description'], startBid=listing['startBid'],
-                                 image=listing['image'], listedBy=User.objects.get(username=request.user), category=listing['category'])
+            newListing = Listing(title=listing['title'], description=listing['description'], starting_price=listing['starting_price'],
+                                 image=listing['image'], listed_by=User.objects.get(username=request.user), category=listing['category'])
             newListing.save()
             successMessage = "New Listing Posted!"
         else:

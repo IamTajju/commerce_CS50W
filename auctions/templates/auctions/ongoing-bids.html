@@ -20,7 +20,7 @@
             <td>{{forloop.counter}}</td>
             <td><img class="rounded" src="{{ bid.listing.image.url }}" width="80px"></td>
             <td><a href="{% url 'view-listing' bid.listing.title%}">{{ bid.listing }}</a></td>
-            <td>৳ {{ bid.listing.startBid }}</td>
+            <td>৳ {{ bid.listing.starting_price }}</td>
             <td>৳ {{ bid.amount }}</td>
             <td class="me-5">
                 <span

@@ -6,15 +6,17 @@ from users.models import PaymentMethod, Address
 
 
 class ListingForm(ModelForm):
+    image = forms.ImageField(help_text='Upload a hero image for the main display.')
+    
     class Meta:
         model = Listing
-        fields = ['title', 'description', 'startBid',
+        fields = ['title', 'description', 'starting_price',
                   'image', 'category']
 
         widgets = {
             'title': forms.TextInput(attrs={'class': 'form-control'}),
             'description': forms.Textarea(attrs={'class': 'form-control'}),
-            'startBid': forms.NumberInput(attrs={'class': 'form-control'}),
+            'starting_price': forms.NumberInput(attrs={'class': 'form-control'}),
             'image': forms.URLInput(attrs={'class': 'form-control'}),
             'category': forms.Select(attrs={'class': 'custom-select'})
 
@@ -55,8 +57,8 @@ class BidForm(ModelForm):
         amount = cleaned_data.get('amount')
 
         if self.listing.buying_format == Listing.BuyingFormat.BUY_IT_NOW:
-            # If it's a Buy It Now listing, use the startBid as the amount
-            cleaned_data['amount'] = self.listing.startBid
+            # If it's a Buy It Now listing, use the starting_price as the amount
+            cleaned_data['amount'] = self.listing.starting_price
         else:
             # Otherwise, perform the validation checks
             if amount is not None:

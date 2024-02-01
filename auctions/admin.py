@@ -4,7 +4,7 @@ from .models import *
 
 @admin.register(Listing)
 class ListingAdmin(admin.ModelAdmin):
-    list_display = ['title', 'startBid', 'currentPrice', 'category', 'buying_format',
+    list_display = ['title', 'starting_price', 'currentPrice', 'category', 'buying_format',
                     'condition', 'location', 'free_shipping', 'local_pickup', 'active']
     list_filter = ['category', 'buying_format', 'condition',
                    'location', 'free_shipping', 'local_pickup', 'active']

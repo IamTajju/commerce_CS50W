@@ -87,9 +87,9 @@ def create_listing():
     listing = Listing.objects.create(
         title=title,
         description=description,
-        startBid=start_bid,
+        starting_price=start_bid,
         image=image,
-        listedBy=listed_by,
+        listed_by=listed_by,
         category=category,
         buying_format=buying_format,
         condition=condition,
@@ -130,7 +130,7 @@ class Paginator:
             return self.listings.annotate(
                 current_price=Coalesce(
                     Max('bid__amount', filter=~Q(bid=None)),
-                    F('startBid'),
+                    F('starting_price'),
                     output_field=IntegerField()
                 )
             ).order_by('-current_price')[starting_index:ending_index]
@@ -138,7 +138,7 @@ class Paginator:
             return self.listings.annotate(
                 current_price=Coalesce(
                     Max('bid__amount', filter=~Q(bid=None)),
-                    F('startBid'),
+                    F('starting_price'),
                     output_field=IntegerField()
                 )
             ).order_by('current_price')[starting_index:ending_index]

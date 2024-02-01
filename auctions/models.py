@@ -8,10 +8,10 @@ from django.core.exceptions import ValidationError
 class Listing(models.Model):
     title = models.CharField(max_length=64, primary_key=True)
     description = models.CharField(max_length=300)
-    startBid = models.IntegerField()
+    starting_price = models.IntegerField()
     image = models.ImageField(
         upload_to='listings/', max_length=250, default='listings/placeholder-image.png')
-    listedBy = models.ForeignKey(
+    listed_by = models.ForeignKey(
         User, on_delete=models.CASCADE)
 
     created_at = models.DateTimeField(auto_now_add=True)
@@ -71,7 +71,7 @@ class Listing(models.Model):
     @property
     def get_current_price(self):
         max_bid = self.get_bids().aggregate(max_bid=Max('amount'))['max_bid']
-        return max(self.startBid, max_bid) if max_bid is not None else self.startBid
+        return max(self.starting_price, max_bid) if max_bid is not None else self.starting_price
 
     @staticmethod
     def get_highest_current_price():
