@@ -13,6 +13,22 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (document.querySelector('#listings-section')) {
         handleFiltering();
+
+        // Show/hide the scroll-to-top button based on scroll position
+        $(window).scroll(function () {
+            if ($(this).scrollTop() > 100) {
+                $('#scroll-to-to-btn').fadeIn();
+            } else {
+                $('#scroll-to-to-btn').fadeOut();
+            }
+        });
+
+        // Scroll to top when the button is clicked
+        $('#scroll-to-to-btn').click(function () {
+            $('html, body').animate({ scrollTop: 0 }, 200);
+            return false;
+        });
+
     }
 
     // Check if the payment elements exist on the page before invoking the function
@@ -66,17 +82,63 @@ function attachLoaderOnClick() {
     });
 }
 
-
 function handleCategoryLinks() {
     var categoryLinks = document.querySelectorAll('.category-link');
+    var previousActiveLink = null;
     categoryLinks.forEach(function (link) {
         link.addEventListener('click', function (e) {
             e.preventDefault();
+
+            // Remove 'active' class from all category links
+            categoryLinks.forEach(function (otherLink) {
+                if (otherLink.classList.contains('active')) {
+                    previousActiveLink = otherLink;
+                    otherLink.classList.remove('active');
+                }
+            });
+
+            // Add 'active' class to the clicked category link
+            this.classList.add('active');
+
             var categoryValue = this.getAttribute('data-category');
-            handleCategoryChange(categoryValue);
+
+            // Uncheck all other category checkboxes
+            var checkboxes = document.querySelectorAll('.category-checkbox');
+            var targetCheckbox = null;
+
+            checkboxes.forEach(function (checkbox) {
+
+                if (checkbox.value !== categoryValue) {
+                    checkbox.checked = false;
+                    if (checkbox.value === previousActiveLink.getAttribute('data-category') && categoryValue === 'all') {
+                        // Trigger the change event to execute the filtering script
+
+                        console.log('Triggering change event for checkbox:', checkbox);
+                        var event = new Event('change');
+                        checkbox.dispatchEvent(event);
+
+                    }
+                } else {
+                    targetCheckbox = checkbox;
+                }
+            });
+
+            if (targetCheckbox) {
+                targetCheckbox.checked = true;
+                // Trigger the change event to execute the filtering script
+                var event = new Event('change');
+                targetCheckbox.dispatchEvent(event);
+            }
+
+            // Scroll to the listings-section
+            var listingsSection = document.getElementById('listings-section');
+            if (listingsSection) {
+                listingsSection.scrollIntoView({ behavior: 'smooth' });
+            }
         });
     });
 }
+
 
 
 function handleFiltering() {
@@ -94,21 +156,6 @@ function handleFiltering() {
             updateListings();
         });
     }
-
-    // Show/hide the scroll-to-top button based on scroll position
-    $(window).scroll(function () {
-        if ($(this).scrollTop() > 100) {
-            $('#scroll-to-to-btn').fadeIn();
-        } else {
-            $('#scroll-to-to-btn').fadeOut();
-        }
-    });
-
-    // Scroll to top when the button is clicked
-    $('#scroll-to-to-btn').click(function () {
-        $('html, body').animate({ scrollTop: 0 }, 200);
-        return false;
-    });
 
     // Handle checkbox change event
     $('.filter-checkbox').change(updateListings);
@@ -176,10 +223,11 @@ function handleFiltering() {
             selectedFilters[filterType].push(filterValue);
         });
 
-        var rangeValue = $('#desktop_price_range').val();
-
         if (window.innerWidth < mobileScreenWidth) {
             var rangeValue = $('#mobile_price_range').val();
+        }
+        else {
+            var rangeValue = $('#desktop_price_range').val();
         }
         selectedFilters['price_range'] = [rangeValue];
 

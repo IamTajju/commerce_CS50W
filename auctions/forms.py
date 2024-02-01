@@ -38,7 +38,7 @@ class BidForm(ModelForm):
         self.listing = kwargs.pop('listing', None)
         self.user = kwargs.pop('user', None)
         super(BidForm, self).__init__(*args, **kwargs)
-
+        
         # Filter payment methods based on the current user
         self.fields['payment_method'].queryset = PaymentMethod.objects.filter(
             user=self.user)

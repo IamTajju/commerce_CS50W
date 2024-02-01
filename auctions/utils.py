@@ -7,7 +7,13 @@ from django.db.models.functions import Coalesce
 from functools import reduce
 from operator import and_, or_
 import math
+from django.contrib.auth.models import AnonymousUser
 # Gets the list of active categories
+
+
+def is_anonymous_user(user):
+    if isinstance(user, AnonymousUser):
+        return True
 
 
 def get_field_name_display(field_name):
@@ -18,12 +24,17 @@ def get_field_name_display(field_name):
 
 
 def user_has_bid(user, listing):
+    if is_anonymous_user(user):
+        return False
     if Bid.objects.filter(listing=listing, bid_by=user).exists():
         return True
     return False
 
 
 def has_been_outbid(user, listing):
+    if is_anonymous_user(user):
+        return False
+
     auction_bid = Bid.objects.filter(
         listing=listing,
         bid_by=user,

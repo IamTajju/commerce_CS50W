@@ -1,0 +1,162 @@
+<!--filter-component.html-->
+
+<h4>Filter Listings</h4>
+<div class="accordion accordion-flush">
+    <!-- Categories -->
+    <div class="accordion-item">
+        <h2 class="accordion-header border-bottom">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                data-bs-target="#{{unique_id}}_category_accordion" aria-expanded="false"
+                aria-controls="{{unique_id}}_category_accordion">
+                Category
+            </button>
+        </h2>
+        <div id="{{unique_id}}_category_accordion" class="accordion-collapse collapse show">
+            <div class="accordion-body px-0">
+                {% for category in categories %}
+                <div class="form-check my-2">
+                    <input class="form-check-input category-checkbox filter-checkbox" type="checkbox"
+                        value="{{category.0}}" id="{{ unique_id }}_category_checkbox_{{ category.0 }}"
+                        data-filter-type="category" data-category="{{ category.0 }}">
+                    <label class="form-check-label" for="{{ unique_id }}_category_checkbox_{{ category.0 }}">
+                        {{category.1}}
+                    </label>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    <!-- Price -->
+    <div class="accordion-item">
+        <h2 class="accordion-header border-bottom">
+            <button class=" accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                data-bs-target="#{{unique_id}}_price_accordion" aria-expanded="false" aria-controls="{{unique_id}}_price_accordion">
+                Price Range
+            </button>
+        </h2>
+        <div id="{{unique_id}}_price_accordion" class="accordion-collapse collapse show">
+            <div class="accordion-body px-0">
+                <div class="range-container">
+                    <span class="min-value">0</span>
+                    <input type="range" class="form-range ps-3 pe-5" id="{{ unique_id }}_price_range"
+                        value="{{max_price}}" data-category="price_range" data-filter-type="price_range">
+                    <span class="max-value">{{max_price}}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Buying Format -->
+    <div class="accordion-item">
+        <h2 class="accordion-header border-bottom">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                data-bs-target="#{{unique_id}}_buying_format_accordion" aria-expanded="false"
+                aria-controls="{{unique_id}}_buying_format_accordion">
+                Buying Format
+            </button>
+        </h2>
+        <div id="{{unique_id}}_buying_format_accordion" class="accordion-collapse collapse show">
+            <div class="accordion-body px-0">
+                {% for buying_format in buying_formats%}
+                <div class="form-check my-2">
+                    <input class="form-check-input buying-format-checkbox filter-checkbox" type="checkbox"
+                        value="{{buying_format.0}}" id="{{unique_id}}_buying_format_checkBox_{{ forloop.counter}}"
+                        data-filter-type="buying_format">
+                    <label class="form-check-label" for="{{unique_id}}_buying_format_checkBox_{{ forloop.counter}}">
+                        {{buying_format.1}}
+                    </label>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    <!-- Condition -->
+    <div class="accordion-item">
+        <h2 class="accordion-header border-bottom">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                data-bs-target="#{{unique_id}}_condition_accordion" aria-expanded="false"
+                aria-controls="{{unique_id}}_condition_accordionn">
+                Condition
+            </button>
+        </h2>
+        <div id="{{unique_id}}_condition_accordion" class="accordion-collapse collapse show">
+            <div class="accordion-body px-0">
+                {% for condition in conditions %}
+                <div class="form-check my-2">
+                    <input class="form-check-input condition-checkbox filter-checkbox" type="checkbox"
+                        value="{{condition.0}}" id="{{unique_id}}_condition_checkbox_{{ forloop.counter}}"
+                        data-filter-type="condition">
+                    <label class="form-check-label" for="{{unique_id}}_condition_checkbox_{{ forloop.counter}}">
+                        {{condition.1}}
+                    </label>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    <!-- Location -->
+    <div class="accordion-item">
+        <h2 class="accordion-header border-bottom">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                data-bs-target="#{{unique_id}}_location_accordion" aria-expanded="false"
+                aria-controls="{{unique_id}}_location_accordion">
+                Item Location
+            </button>
+        </h2>
+        <div id="{{unique_id}}_location_accordion" class="accordion-collapse collapse show">
+            <div class="accordion-body px-0">
+                {% for location in locations %}
+                <div class="form-check my-2">
+                    <input class="form-check-input location-checkbox filter-checkbox" type="checkbox"
+                        value="{{location.0}}" id="{{unique_id}}_location_checkbox_{{ forloop.counter}}"
+                        data-filter-type="location">
+                    <label class="form-check-label" for="{{unique_id}}_location_checkbox_{{ forloop.counter}}">
+                        {{location.1}}
+                    </label>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    <!-- Shipping Options -->
+    <div class="accordion-item">
+        <h2 class="accordion-header border-bottom">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                data-bs-target="#{{unique_id}}_shipping_options_accordion" aria-expanded="false"
+                aria-controls="{{unique_id}}_shipping_options_accordion">
+                Shipping Options
+            </button>
+        </h2>
+        <div id="{{unique_id}}_shipping_options_accordion" class="accordion-collapse collapse show">
+            <div class="accordion-body px-0">
+                <div class="form-check my-2">
+                    <input class="form-check-input free-shipping-checkbox filter-checkbox" type="checkbox"
+                        value="True" id="{{unique_id}}_free_shipping_checkbox_{{ forloop.counter}}" data-filter-type="free_shipping">
+                    <label class="form-check-label" for="{{unique_id}}_free_shipping_checkbox_{{ forloop.counter}}">
+                        Free Country Wide Shipping
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Local Pickup -->
+    <div class="accordion-item">
+        <h2 class="accordion-header border-bottom">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                data-bs-target="#{{unique_id}}_local_pickup_accordion" aria-expanded="false"
+                aria-controls="{{unique_id}}_local_pickup_accordion">
+                Local Pickup
+            </button>
+        </h2>
+        <div id="{{unique_id}}_local_pickup_accordion" class="accordion-collapse collapse show">
+            <div class="accordion-body px-0">
+                <div class="form-check my-2">
+                    <input class="form-check-input local-pickup-checkbox filter-checkbox" type="checkbox"
+                        value="True" id="{{unique_id}}_local_pickup_checkbox_{{ forloop.counter}}" data-filter-type="local_pickup">
+                    <label class="form-check-label" for="{{unique_id}}_local_pickup_checkbox_{{ forloop.counter}}">
+                        Free Local Pickup
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -43,6 +43,9 @@
             </div>
             <hr>
             <div class="d-block my-3">
+                {% if not user_logged_in %}
+                <a class="btn btn-primary" href="{% url 'login' %}">Log in to Bid</a>
+                {% else %}
                 {% if user_has_bid and not has_been_outbid %}
                 <a class="btn btn-primary">View Your Bid</a>
                 {% else %}
@@ -64,6 +67,7 @@
                     <i class="bi bi-eyeglasses"></i> Add to Watchlist
                 </a>
                 {% endif %}
+                {% endif %}
                 <p class="float-end text-muted fs-6 mt-sm-0 mt-2"><i class="bi bi-geo-alt-fill"></i>
                     {{listing.get_location_display}}
                 </p>
@@ -77,37 +81,14 @@
     <h4 class="h4 mb-3">You may also like</h4>
     <div class="row align-items-center">
         {% for listing in similar_listings %}
-        <div class="col-lg-3 col-md-6 col-12 my-2">
-            <a class="page-link" href="{% url 'view-listing' listing.title %}">
-                <div class="card">
-                    <img src="{{ listing.image.url }}" class="img-fluid listing-image" href="">
-                    <div class="px-3 py-2">
-                        <div class="mt-2">
-                            <h5 class="my-0 text-truncate">{{listing.title}}</h5>
-                            <p class="text-muted my-0">{{listing.get_condition_display}}</p>
-                        </div>
-                        <div class="mt-3">
-                            <strong>${{listing.get_current_price}}</strong>
-                            <p class="text-muted my-0">{{listing.get_buying_format_display}}</p>
-                            <div class="d-block mt-3">
-                                {% if listing.free_shipping %}
-                                <p class="float-start text-muted fs-6"> <mark>Free Shipping</mark></p>
-                                {% endif %}
-                                <p class="float-end text-muted fs-6"><i class="bi bi-geo-alt-fill"></i>
-                                    {{listing.get_location_display}}
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </a>
-        </div>
+        {% include 'auctions/listing-card.html' %}
         {% endfor %}
     </div>
 </section>
 <section class="container-fluid px-md-5 px-4 mt-md-3 mt-5">
     <h1>Comments</h1>
     <hr>
+    {% if user_logged_in%}
     <h5 class="lead mt-5">Share your thoughts </h5>
     <form action="{% url 'comment' listing.title %}" method="post" class="row g-3 align-items-start">
         <div class="col-md-10 col-12">
@@ -122,6 +103,7 @@
         </div>
     </form>
     <hr>
+    {% endif %}
     <div class="row justify-content-center mt-3">
         {% for comment in comments%}
         <div class="col-12 py-3 border-bottom">

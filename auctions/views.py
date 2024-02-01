@@ -35,7 +35,7 @@ def index(request):
     paginator = Paginator(current_page_number, listings, sort_option)
 
     if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-        return render(request, 'auctions/listings.html', {'paginator': paginator, 'filter_labels': filter_labels})
+        return render(request, 'auctions/filtered-listings.html', {'paginator': paginator, 'filter_labels': filter_labels})
 
     return render(request, "auctions/index.html", {
         "paginator": paginator,
@@ -52,49 +52,48 @@ def index(request):
 # Listing details page
 def view_listing(request, title):
     listing = get_object_or_404(Listing, title=title)
-    comment_form = CommentForm()
-    comments = Comment.objects.filter(listing=listing)
-    similar_listings = Listing.objects.filter(
-        category=listing.category, location=listing.location).exclude(title=title)[:8]
-    watchers = User.objects.filter(watchlist=listing).annotate(
-        watchlist_count=Count('id')).count()
-    total_bids = Bid.objects.filter(listing=listing).count()
 
-    open_modal = False
-
-    redirect = request.session.pop('listing_title', None)
-    if redirect or "view-listing-with-bid-form" in request.path:
-        open_modal = True
-
-    # Create a new BidForm instance and set its errors
-    existing_bid = has_been_outbid(request.user, listing)
-    if existing_bid:
-        bid_form = BidForm(instance=existing_bid,
-                           listing=listing, user=request.user)
-    else:
-        bid_form = BidForm(listing=listing, user=request.user)
-
-    # Retrieve bid form errors from the session
-    error_data = request.session.pop('data', None)
-
-    # If there are errors, update the form's errors dictionary
-    if error_data:
-        bid_form = BidForm(data=error_data, listing=listing, user=request.user)
-        open_modal = True
-
-    return render(request, "auctions/listing-details.html", {
+    response_context = {
         "listing": listing,
-        'bid_form': bid_form,
-        'comment_form': comment_form,
-        'comments': comments,
-        'similar_listings': similar_listings,
-        'open_modal': open_modal,
-        'user_has_bid': user_has_bid(request.user, listing),
-        'has_been_outbid': existing_bid,
-        'watchers': watchers,
-        'total_bids': total_bids
+        'comments': Comment.objects.filter(listing=listing),
+        'similar_listings': Listing.objects.filter(
+            category=listing.category, location=listing.location).exclude(title=title)[:8],
+        'open_modal': False,
+        # Set to True if the user is not anonymous
+        'user_logged_in': not is_anonymous_user(request.user),
+        'watchers': User.objects.filter(watchlist=listing).annotate(
+            watchlist_count=Count('id')).count(),
+        'total_bids': Bid.objects.filter(listing=listing).count()
     }
-    )
+
+    if response_context['user_logged_in']:
+        response_context['comment_form'] = CommentForm()
+        response_context['user_has_bid'] = user_has_bid(request.user, listing)
+
+        redirect = request.session.pop('listing_title', None)
+        if redirect or "view-listing-with-bid-form" in request.path:
+            response_context['open_modal'] = True
+
+        # Create a new BidForm instance and set its errors
+        existing_bid = has_been_outbid(request.user, listing)
+        response_context['has_been_outbid'] = existing_bid
+        if existing_bid:
+            response_context['bid_form'] = BidForm(instance=existing_bid,
+                                                   listing=listing, user=request.user)
+        else:
+            response_context['bid_form'] = BidForm(
+                listing=listing, user=request.user)
+
+        # Retrieve bid form errors from the session
+        error_data = request.session.pop('data', None)
+
+        # If there are errors, update the form's errors dictionary
+        if error_data:
+            response_context['bid_form'] = BidForm(
+                data=error_data, listing=listing, user=request.user)
+            response_context['open_modal'] = True
+
+    return render(request, "auctions/listing-details.html", response_context)
 
 
 @login_required(login_url=settings.LOGIN_URL)
@@ -103,7 +102,8 @@ def place_bid(request, title):
         listing = Listing.objects.get(title=title)
         bid = Bid.objects.filter(listing=listing, bid_by=request.user).first()
         if bid:
-            form = BidForm(request.POST,listing=listing, user=request.user, instance=bid)
+            form = BidForm(request.POST, listing=listing,
+                           user=request.user, instance=bid)
         else:
             form = BidForm(request.POST, listing=listing, user=request.user)
         if form.is_valid():
@@ -249,6 +249,7 @@ def ongoing_bids(request):
     return render(request, "auctions/ongoing-bids.html", {
         "ongoing_bids": ongoing_bids,
     })
+
 
 def search(request):
     if request.method == "POST":
