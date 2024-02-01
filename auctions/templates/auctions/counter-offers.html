@@ -37,8 +37,8 @@
                 {% else %}
                 <div class="d-flex ">
                     <button class="btn btn-success btn-sm small-custom mx-1 counter-offer-btn"
-                        onClick="confirmOffer()"><i class="bi bi-check-lg"></i></button>
-                    <button class="btn btn-danger btn-sm small-custom mx-1 counter-offer-btn" onClick="rejectOffer()"><i
+                        onClick="confirmCounterOffer()"><i class="bi bi-check-lg"></i></button>
+                    <button class="btn btn-danger btn-sm small-custom mx-1 counter-offer-btn" onClick="rejectCounterOffer()"><i
                             class="bi bi-x-lg"></i></button>
                 </div>
                 {% endif %}
@@ -47,48 +47,4 @@
         {% endfor %}
     </tbody>
 </table>
-<script>
-    function confirmOffer() {
-        const customSuccessColor = getComputedStyle(document.documentElement).getPropertyValue('--custom-success');
-        const customDarkColor = getComputedStyle(document.documentElement).getPropertyValue('--custom-dark');
-        Swal.fire({
-            title: 'Accept Offer?',
-            icon: 'success',
-            showCancelButton: true,
-            confirmButtonColor: customSuccessColor,
-            cancelButtonColor: customDarkColor,
-            confirmButtonText: 'Yes, accept offer!',
-            cancelButtonText: 'Go Back'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                // Get all elements with the class name 'counter-offer-btn'
-                document.getElementById('counter-offer-table').innerHTML = `
-                        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                        Loading...
-                    `;
-            }
-        });
-    }
-    function rejectOffer() {
-        const customSuccessColor = getComputedStyle(document.documentElement).getPropertyValue('--custom-danger');
-        const customDarkColor = getComputedStyle(document.documentElement).getPropertyValue('--custom-dark');
-        Swal.fire({
-            title: 'Reject Offer?',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: customSuccessColor,
-            cancelButtonColor: customDarkColor,
-            confirmButtonText: 'Yes, Reject offer.',
-            cancelButtonText: 'Go Back'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                // Get all elements with the class name 'counter-offer-btn'
-                document.getElementById('counter-offer-table').innerHTML = `
-                        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                        Loading...
-                    `;
-            }
-        });
-    }
-</script>
 {% endblock child %}

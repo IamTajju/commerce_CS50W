@@ -68,28 +68,4 @@
         </div>
     </div>
 </div>
-<script>
-    function confirmChange() {
-        const customSuccessColor = getComputedStyle(document.documentElement).getPropertyValue('--custom-success');
-        const customDarkColor = getComputedStyle(document.documentElement).getPropertyValue('--custom-dark');
-        Swal.fire({
-            title: 'Are you sure?',
-            text: 'Email/Password change process will deactivate your account till you have verified it.',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: customSuccessColor,
-            cancelButtonColor: customDarkColor,
-            confirmButtonText: 'Yes, change it!'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                // Perform the action if the user confirms
-                document.getElementById('email-form-button').innerHTML = `
-                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                    Loading...
-                `;
-                document.getElementById('email-form').submit();
-            }
-        });
-    }
-</script>
 {% endblock %}

@@ -48,35 +48,4 @@
 
   <button type="submit" class="btn btn-primary">Submit</button>
 </form>
-
-<script>
-  document.addEventListener('DOMContentLoaded', function () {
-    var paymentOptionSelect = document.querySelector('#id_payment_option');
-    var cardPaymentDiv = document.querySelector('#card-payment');
-    var bkashPaymentDiv = document.querySelector('#bkash-payment');
-    // Initial toggle based on selected payment option
-    togglePaymentForms();
-
-    // Event listener for changes in the payment option
-    paymentOptionSelect.addEventListener('change', togglePaymentForms);
-
-    function togglePaymentForms() {
-      var selectedOption = paymentOptionSelect.value;
-
-      // Toggle visibility based on selected payment option
-      cardPaymentDiv.style.display = (selectedOption === 'CC' || selectedOption === 'DC') ? 'block' : 'none';
-      bkashPaymentDiv.style.display = (selectedOption === 'B') ? 'block' : 'none';
-
-      // Add or remove the 'required' attribute based on visibility
-      Array.from(cardPaymentDiv.querySelectorAll('input')).forEach(function (input) {
-        input.required = (selectedOption === 'CC' || selectedOption === 'DC');
-      });
-
-      Array.from(bkashPaymentDiv.querySelectorAll('input')).forEach(function (input) {
-        input.required = (selectedOption === 'B');
-      });
-    }
-
-  });
-</script>
 {% endblock %}
