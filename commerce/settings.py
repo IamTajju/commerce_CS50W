@@ -143,6 +143,10 @@ MEDIA_URL = '/media/'
 
 STATIC_URL = '/static/'
 
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'commerce/static'),
+]
+
 LOGIN_URL = '/users/login'
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
