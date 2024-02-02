@@ -1,7 +1,6 @@
-from .models import Listing, Comment, Bid
+from .models import Listing, Comment, Bid, Category
 from users.models import User
-from faker import Faker
-import random
+from distutils.util import strtobool
 from django.db.models import Q, F, Max, Case, When, Value, IntegerField
 from django.db.models.functions import Coalesce
 from functools import reduce
@@ -38,7 +37,7 @@ def has_been_outbid(user, listing):
     auction_bid = Bid.objects.filter(
         listing=listing,
         bid_by=user,
-        listing__buying_format=Listing.BuyingFormat.AUCTION
+        listing__buying_format__name='Auction'
     ).first()
 
     if auction_bid is not None and auction_bid.amount < listing.get_current_price:
@@ -48,7 +47,7 @@ def has_been_outbid(user, listing):
 
 
 def getAllCategories():
-    return list(Listing.Category.choices)
+    return Category.objects.all()
 
 
 def getComments(Listing):
@@ -64,58 +63,15 @@ def apply_filter(queryset, filters, max_price):
             queryset_beyond_price = [
                 query for query in queryset if query.get_current_price > threshold]
             queryset = queryset.exclude(pk__in=queryset_beyond_price)
+        elif param == 'local_pickup':
+            value = bool(strtobool(value[0]))
+            queryset = queryset.filter(local_pickup=value)
+        elif param == 'free_shipping':
+            value = bool(strtobool(value[0]))
+            queryset = queryset.filter(free_shipping=value)
         else:
-            q_objects &= Q(**{f"{param}__in": value})
+            q_objects &= Q(**{f"{param}__name__in": value})
     return queryset.filter(q_objects)
-
-
-fake = Faker()
-
-# Create users for listing ownership
-users = User.objects.all()
-
-# Function to create a Listing instance
-
-
-def create_listing():
-    title = fake.text(max_nb_chars=20)
-    description = fake.text(max_nb_chars=150)
-    start_bid = random.randint(10, 1000)
-    image = fake.image_url()
-    listed_by = random.choice(users)
-    category = random.choice([choice[0]
-                             for choice in Listing.Category.choices])
-    buying_format = random.choice([choice[0]
-                                  for choice in Listing.BuyingFormat.choices])
-    condition = random.choice([choice[0]
-                              for choice in Listing.Condition.choices])
-    location = random.choice([choice[0]
-                             for choice in Listing.Location.choices])
-    free_shipping = fake.boolean()
-    local_pickup = fake.boolean()
-    active = fake.boolean()
-
-    listing = Listing.objects.create(
-        title=title,
-        description=description,
-        starting_price=start_bid,
-        image=image,
-        listed_by=listed_by,
-        category=category,
-        buying_format=buying_format,
-        condition=condition,
-        location=location,
-        free_shipping=free_shipping,
-        local_pickup=local_pickup,
-        active=active,
-    )
-
-    # Create bids for the listing
-    num_bids = random.randint(0, 10)
-    for _ in range(num_bids):
-        bid_price = random.randint(start_bid, start_bid + 100)
-        bid_by = random.choice(users)
-        Bid.objects.create(listing=listing, price=bid_price, bidBy=bid_by)
 
 
 class Paginator:

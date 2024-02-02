@@ -5,7 +5,7 @@
     <div class="row align-items-center justify-content-center gx-5">
         <div class="col-lg-4 col-12">
             <img src="{{listing.image.url }}" class="img-fluid card rounded">
-            {% if listing.buying_format != 'BIN' %}
+            {% if listing.buying_format.name != 'Buy It Now' %}
             <div class="d-block card text-center bg-warning-subtle py-2 mt-2 border-light lead fw-bold">
                 <i class="bi bi-file-bar-graph-fill"></i> {{total_bids}} Bids/Offers so far
             </div>
@@ -15,7 +15,7 @@
             <div class="d-block">
                 <h1 class="display-4">{{listing.title}}</h1>
                 <div class="d-block">
-                    <p class="float-start text-muted lead">{{listing.get_condition_display}}</p>
+                    <p class="float-start text-muted lead">{{listing.condition}}</p>
                     {% if watchers > 0%}
                     <p class="float-end text-muted"><mark class="bg-primary-subtle rounded px-3"><i
                                 class="bi bi-eyeglasses"></i>
@@ -33,7 +33,7 @@
                 <div class="d-flex flex-row align-items-center">
                     <strong class="lead fs-3">Price: </strong> <span class="lead fs-3">৳
                         {{listing.get_current_price}}</span><span class="text-muted
-                    ms-3"><mark>{{listing.get_buying_format_display}}</mark></span>
+                    ms-3"><mark>{{listing.buying_format}}</mark></span>
                 </div>
                 {% if not listing.free_shipping %}
                 <div class="d-block">
@@ -51,11 +51,12 @@
                 {% else %}
 
                 <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
-                    <i class="bi bi-bag-fill"></i>{%if listing.buying_format == 'A' %} {% if has_been_outbid %} Update
-                    Bid
-                    {% else %} Place Bid{% endif %} {% endif %}
-                    {% if listing.buying_format == 'AO' %} Make Offer{% endif %}
-                    {% if listing.buying_format == 'BIN' %} Buy Now{% endif %}
+                    <i class="bi bi-bag-fill"></i>
+                    {% if has_been_outbid %}
+                    Update Bid
+                    {% else %}
+                    {{listing.buying_format.action_name}}
+                    {% endif %}
                 </button>
                 {% endif %}
                 {% if listing in request.user.watchlist.all %}
@@ -69,7 +70,7 @@
                 {% endif %}
                 {% endif %}
                 <p class="float-end text-muted fs-6 mt-sm-0 mt-2"><i class="bi bi-geo-alt-fill"></i>
-                    {{listing.get_location_display}}
+                    {{listing.location}}
                 </p>
             </div>
             <div class="d-block">
@@ -136,9 +137,7 @@
             </div>
             <div class="modal-body justify-content-start">
                 <form action="{% url 'place-bid' listing.title %}" method="post" class="align-items-center my-3">
-                    <h5 class="lead">{%if listing.buying_format == 'A' %}Place Bid {% endif %}
-                        {% if listing.buying_format == 'AO' %}Make Offer{% endif %}
-                        {% if listing.buying_format == 'BIN' %}Buy Now{% endif %}</h5>
+                    <h5 class="lead">{{listing.buying_format.action_name}}</h5>
                     {% csrf_token %}
                     {% for field in bid_form %}
                     <div class="mb-3">
@@ -152,7 +151,7 @@
                     </div>
                     {% endfor %}
                     <button type="submit" class="btn btn-success btn-sm "><i class="bi bi-bag-fill"></i>
-                        {%if listing.buying_format == 'A' %} Place Bid{%else%} Make Offer{% endif %}</button>
+                        {{listing.buying_format.action_name}}</button>
                 </form>
                 <small class="form-text text-muted"><i class="bi bi-info-circle"></i> Bids higher than current listed
                     price will accepted</small>

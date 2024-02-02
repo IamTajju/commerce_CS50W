@@ -16,10 +16,10 @@
                 {% for category in categories %}
                 <div class="form-check my-2">
                     <input class="form-check-input category-checkbox filter-checkbox" type="checkbox"
-                        value="{{category.0}}" id="{{ unique_id }}_category_checkbox_{{ category.0 }}"
-                        data-filter-type="category" data-category="{{ category.0 }}">
-                    <label class="form-check-label" for="{{ unique_id }}_category_checkbox_{{ category.0 }}">
-                        {{category.1}}
+                        value="{{category.name}}" id="{{ unique_id }}_category_checkbox_{{ category.name }}"
+                        data-filter-type="category" data-category="{{ category.name }}">
+                    <label class="form-check-label" for="{{ unique_id }}_category_checkbox_{{ category.name }}">
+                        {{category}}
                     </label>
                 </div>
                 {% endfor %}
@@ -59,10 +59,10 @@
                 {% for buying_format in buying_formats%}
                 <div class="form-check my-2">
                     <input class="form-check-input buying-format-checkbox filter-checkbox" type="checkbox"
-                        value="{{buying_format.0}}" id="{{unique_id}}_buying_format_checkBox_{{ forloop.counter}}"
+                        value="{{buying_format.name}}" id="{{unique_id}}_buying_format_checkBox_{{ forloop.counter}}"
                         data-filter-type="buying_format">
                     <label class="form-check-label" for="{{unique_id}}_buying_format_checkBox_{{ forloop.counter}}">
-                        {{buying_format.1}}
+                        {{buying_format.name}}
                     </label>
                 </div>
                 {% endfor %}
@@ -83,10 +83,10 @@
                 {% for condition in conditions %}
                 <div class="form-check my-2">
                     <input class="form-check-input condition-checkbox filter-checkbox" type="checkbox"
-                        value="{{condition.0}}" id="{{unique_id}}_condition_checkbox_{{ forloop.counter}}"
+                        value="{{condition.name}}" id="{{unique_id}}_condition_checkbox_{{ forloop.counter}}"
                         data-filter-type="condition">
                     <label class="form-check-label" for="{{unique_id}}_condition_checkbox_{{ forloop.counter}}">
-                        {{condition.1}}
+                        {{condition}}
                     </label>
                 </div>
                 {% endfor %}
@@ -107,10 +107,10 @@
                 {% for location in locations %}
                 <div class="form-check my-2">
                     <input class="form-check-input location-checkbox filter-checkbox" type="checkbox"
-                        value="{{location.0}}" id="{{unique_id}}_location_checkbox_{{ forloop.counter}}"
+                        value="{{location.name}}" id="{{unique_id}}_location_checkbox_{{ forloop.counter}}"
                         data-filter-type="location">
                     <label class="form-check-label" for="{{unique_id}}_location_checkbox_{{ forloop.counter}}">
-                        {{location.1}}
+                        {{location}}
                     </label>
                 </div>
                 {% endfor %}

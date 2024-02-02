@@ -45,7 +45,7 @@ class BidForm(ModelForm):
         self.fields['shipping_address'].queryset = Address.objects.filter(
             user=self.user)
 
-        if self.listing.buying_format == Listing.BuyingFormat.BUY_IT_NOW:
+        if self.listing.buying_format.name == 'Buy It Now':
             # If it's a Buy It Now listing, exclude the 'amount' field
             del self.fields['amount']
 
@@ -56,7 +56,7 @@ class BidForm(ModelForm):
         cleaned_data = super().clean()
         amount = cleaned_data.get('amount')
 
-        if self.listing.buying_format == Listing.BuyingFormat.BUY_IT_NOW:
+        if self.listing.buying_format.name == 'Buy It Now':
             # If it's a Buy It Now listing, use the starting_price as the amount
             cleaned_data['amount'] = self.listing.starting_price
         else:
@@ -66,7 +66,7 @@ class BidForm(ModelForm):
                     self.add_error(
                         'amount', 'Bid/Offer amount must be greater than 0.')
 
-                if amount <= self.listing.get_current_price and self.listing.buying_format != Listing.BuyingFormat.BUY_IT_NOW:
+                if amount <= self.listing.get_current_price and self.listing.buying_format.name != 'But It Now':
                     self.add_error(
                         'amount', 'Bid/Offer amount must be greater than the current price.')
 

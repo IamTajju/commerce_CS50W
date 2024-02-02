@@ -30,8 +30,8 @@
                         role="button" id="categoryLink" data-category="all">All</a>
                     {% for category in categories %}
                     <a class="btn btn-outline-secondary rounded-pill mr-2 my-2 category-link" href="#" role="button"
-                        id="categoryLink{{ category.0 }}" data-category="{{ category.0 }}">
-                        {{ category.1 }}</a>
+                        id="categoryLink{{ category.name }}" data-category="{{ category.name }}">
+                        {{ category }}</a>
                     {% endfor %}
                 </span>
                 <hr class="my-2">
@@ -98,8 +98,8 @@
             <div class="d-block mt-5">
                 <div class="row gx-3">
                     {% if not paginator.has_listings %}
-                    <div class="col-auto my-2">
-                        <p class="display-5">We're sorry, but we couldn't find any listings that match your specific
+                    <div class="col-auto my-2 px-5">
+                        <p class="lead">We're sorry, but we couldn't find any listings that match your specific
                             criteria. It's possible that there are currently no items available that meet your search
                             parameters. Consider broadening your search or adjusting the filters to discover more
                             listings. If you have any specific requirements or if you need assistance, feel free to

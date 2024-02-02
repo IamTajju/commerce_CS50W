@@ -12,14 +12,12 @@ from django.shortcuts import get_object_or_404
 from django.conf import settings
 
 # Homepage
-
-
 def index(request):
     listings = Listing.objects.filter(active=True)
-    categories = Listing.Category.choices
-    buying_formats = Listing.BuyingFormat.choices
-    conditions = Listing.Condition.choices
-    locations = Listing.Location.choices
+    categories = Category.objects.all()
+    buying_formats = BuyingFormat.objects.all()
+    conditions = Condition.objects.all()
+    locations = Location.objects.all()
     max_price = Listing.get_highest_current_price()
 
     filters = {key.replace("[]", ""): value for key, value in dict(request.GET).items(
@@ -232,7 +230,7 @@ def counter_offers(request):
     bids = Bid.objects.filter(bid_by=request.user)
 
     counter_offers = bids.filter(
-        listing__active=True, listing__buying_format=Listing.BuyingFormat.ACCEPT_OFFER)
+        listing__active=True, listing__buying_format__name='Accepts Offers')
 
     return render(request, "auctions/counter-offers.html", {
         "counter_offers": counter_offers,
@@ -244,7 +242,7 @@ def ongoing_bids(request):
     bids = Bid.objects.filter(bid_by=request.user)
 
     ongoing_bids = bids.filter(
-        listing__active=True, listing__buying_format=Listing.BuyingFormat.AUCTION)
+        listing__active=True, listing__buying_format__name='Auction')
 
     return render(request, "auctions/ongoing-bids.html", {
         "ongoing_bids": ongoing_bids,

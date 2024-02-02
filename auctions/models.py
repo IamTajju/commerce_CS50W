@@ -3,6 +3,33 @@ from django.utils.translation import gettext_lazy as _
 from users.models import User, Address, PaymentMethod
 from django.db.models import Max
 from django.core.exceptions import ValidationError
+import logging
+
+
+class EnumBase(models.Model):
+    name = models.CharField(max_length=50, unique=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        abstract = True
+
+
+class BuyingFormat(EnumBase):
+    action_name = models.CharField(max_length=50)
+
+
+class Condition(EnumBase):
+    pass
+
+
+class Location(EnumBase):
+    pass
+
+
+class Category(EnumBase):
+    pass
 
 
 class Listing(models.Model):
@@ -16,44 +43,13 @@ class Listing(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
 
-    class Category(models.TextChoices):
-        FASHION = 'F', _('Fashion')
-        TOYS = 'T', _('Toys')
-        ELECTRONICS = 'E', _('Electronics')
-        HOME = 'H', _('Home')
-        OTHERS = 'O', _('Others')
+    category = models.ForeignKey(Category, on_delete=models.PROTECT)
 
-    class BuyingFormat(models.TextChoices):
-        AUCTION = 'A', _('Auction')
-        BUY_IT_NOW = 'BIN', _('Buy It Now')
-        ACCEPT_OFFER = 'AO', _('Accept Offer')
+    buying_format = models.ForeignKey(BuyingFormat, on_delete=models.PROTECT)
 
-    class Condition(models.TextChoices):
-        NEW = 'N', _('New')
-        GOOD_R = 'G_R', ('Good - Refurbished')
-        USED = 'U', ('Used')
+    condition = models.ForeignKey(Condition, on_delete=models.PROTECT)
 
-    class Location(models.TextChoices):
-        DHAKA = 'D', _('Dhaka')
-        CHITTAGONG = 'C', _('Chittagong')
-        RAJSHAHI = 'R', _('Rajshahi')
-        KHULNA = 'K', _('Khulna')
-        BARISAL = 'B', _('Barisal')
-        SYLHET = 'S', _('Sylhet')
-        RANGPUR = 'RG', _('Rangpur')
-        MYMENSING = 'M', _('Mymensing')
-
-    category = models.CharField(
-        max_length=250, choices=Category.choices, default=Category.OTHERS)
-
-    buying_format = models.CharField(
-        max_length=250, choices=BuyingFormat.choices, default=BuyingFormat.AUCTION)
-
-    condition = models.CharField(
-        max_length=250, choices=Condition.choices, default=Condition.GOOD_R)
-
-    location = models.CharField(
-        max_length=250, choices=Location.choices, default=Location.DHAKA)
+    location = models.ForeignKey(Location, on_delete=models.PROTECT)
 
     free_shipping = models.BooleanField(default=False)
 
@@ -96,7 +92,7 @@ class Bid(models.Model):
         return f"Bid by:{self.bid_by} | Bid: {self.amount} | On: {self.listing}"
 
     def is_valid_bid(self):
-        if self.amount > self.listing.get_current_price or self.listing.buying_format == Listing.BuyingFormat.BUY_IT_NOW:
+        if self.amount > self.listing.get_current_price or self.listing.buying_format.name == 'Buy It Now':
             return True
         return False
 
