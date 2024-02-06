@@ -14,7 +14,6 @@ class ListingAdmin(admin.ModelAdmin):
                      'condition', 'location', 'free_shipping', 'local_pickup', 'active']
 
 
-
 @admin.register(Bid)
 class BidAdmin(admin.ModelAdmin):
     list_display = ['listing', 'bid_by', 'amount']
@@ -32,6 +31,7 @@ class CommentAdmin(admin.ModelAdmin):
 @admin.register(BuyingFormat)
 class BuyingFormatAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'action_name')
+    list_editable = ('name', 'action_name')
 
 
 @admin.register(Condition)

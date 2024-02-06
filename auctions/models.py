@@ -32,6 +32,7 @@ class Category(EnumBase):
     pass
 
 
+
 class Listing(models.Model):
     title = models.CharField(max_length=64, primary_key=True)
     description = models.CharField(max_length=300)
@@ -76,6 +77,13 @@ class Listing(models.Model):
             listing.get_current_price for listing in all_listings) if all_listings else 0
         return highest_price
 
+class AuctionListing(Listing):
+    end_time = models.DateTimeField()
+
+class AcceptsOffersListing(Listing):
+    counter_offer_enabled = models.BooleanField(default=True)
+
+
 
 class Bid(models.Model):
     amount = models.IntegerField()
@@ -96,6 +104,19 @@ class Bid(models.Model):
             return True
         return False
 
+class BidStatus(models.Model):
+    name = models.CharField(max_length=50, unique=True)
+
+    def __str__(self):
+        return self.name
+
+class CounterOffer(models.Model):
+    bid = models.OneToOneField('Bid', on_delete=models.CASCADE, related_name='counter_offer')
+    amount = models.IntegerField()
+    status = models.ForeignKey(BidStatus, on_delete=models.SET_NULL, null=True)
+
+    def __str__(self):
+        return f"Counter Offer for Bid: {self.bid}"
 
 class Comment(models.Model):
     user = models.ForeignKey(

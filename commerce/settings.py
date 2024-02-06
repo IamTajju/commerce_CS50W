@@ -155,3 +155,5 @@ EMAIL_USE_TLS = True
 EMAIL_PORT = 587
 EMAIL_HOST_USER = 'tahzeebahmedmaster@gmail.com'
 EMAIL_HOST_PASSWORD = 'rdrn xxol dxxb igmy'
+
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
