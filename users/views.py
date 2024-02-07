@@ -169,7 +169,7 @@ def google_auth_receiver(request):
             username=user_info['username'],
             email=user_info['email'],
             first_name=user_info['given_name'],
-            last_name=user_info['family_name'] or None,
+            last_name=user_info.get('family_name', 'given_name'),
             is_oauth_registered=True
         )
 

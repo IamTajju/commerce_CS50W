@@ -32,7 +32,6 @@ class Category(EnumBase):
     pass
 
 
-
 class Listing(models.Model):
     title = models.CharField(max_length=64, primary_key=True)
     description = models.CharField(max_length=300)
@@ -58,6 +57,8 @@ class Listing(models.Model):
 
     active = models.BooleanField(default=True)
 
+    purchased = models.BooleanField(default=False)
+
     def __str__(self):
         return f"{self.title}"
 
@@ -77,12 +78,27 @@ class Listing(models.Model):
             listing.get_current_price for listing in all_listings) if all_listings else 0
         return highest_price
 
+
 class AuctionListing(Listing):
     end_time = models.DateTimeField()
 
-class AcceptsOffersListing(Listing):
-    counter_offer_enabled = models.BooleanField(default=True)
 
+class StatusBase(models.Model):
+    name = models.CharField(max_length=50, unique=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        abstract = True
+
+
+class BidStatus(StatusBase):
+    @classmethod
+    def get_default_bid_status(cls):
+        ongoing_status, created = cls.objects.get_or_create(
+            name="Ongoing")
+        return ongoing_status.id
 
 
 class Bid(models.Model):
@@ -96,6 +112,9 @@ class Bid(models.Model):
     payment_method = models.ForeignKey(
         PaymentMethod, on_delete=models.PROTECT, related_name='bid')
 
+    bid_status = models.ForeignKey(
+        BidStatus, on_delete=models.SET_NULL, null=True, default=BidStatus.get_default_bid_status)
+
     def __str__(self):
         return f"Bid by:{self.bid_by} | Bid: {self.amount} | On: {self.listing}"
 
@@ -104,19 +123,31 @@ class Bid(models.Model):
             return True
         return False
 
-class BidStatus(models.Model):
-    name = models.CharField(max_length=50, unique=True)
 
-    def __str__(self):
-        return self.name
+    def save(self, *args, **kwargs):
+        if self.listing.buying_format == BuyingFormat.objects.get(name='Buy It Now'):
+            self.bid_status = BidStatus.objects.get_or_create(name='Won')[0]
+        super().save(*args, **kwargs)
+
+
+class CounterOfferStatus(StatusBase):
+    @classmethod
+    def get_default_counter_offer_status(cls):
+        pending_response, created = cls.objects.get_or_create(
+            name="Pending Counter Offer Response")
+        return pending_response.id
+
 
 class CounterOffer(models.Model):
-    bid = models.OneToOneField('Bid', on_delete=models.CASCADE, related_name='counter_offer')
+    bid = models.OneToOneField(
+        'Bid', on_delete=models.CASCADE, related_name='counter_offer')
     amount = models.IntegerField()
-    status = models.ForeignKey(BidStatus, on_delete=models.SET_NULL, null=True)
+    status = models.ForeignKey(
+        CounterOfferStatus, on_delete=models.SET_NULL, null=True, default=CounterOfferStatus.get_default_counter_offer_status)
 
     def __str__(self):
         return f"Counter Offer for Bid: {self.bid}"
+
 
 class Comment(models.Model):
     user = models.ForeignKey(

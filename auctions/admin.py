@@ -16,8 +16,8 @@ class ListingAdmin(admin.ModelAdmin):
 
 @admin.register(Bid)
 class BidAdmin(admin.ModelAdmin):
-    list_display = ['listing', 'bid_by', 'amount']
-    list_filter = ['listing__title', 'bid_by__username']
+    list_display = ['listing', 'bid_by', 'amount', 'bid_status']
+    list_filter = ['listing__title', 'bid_by__username', 'bid_status']
     search_fields = ['listing__title', 'bid_by__username']
 
 
@@ -35,15 +35,20 @@ class BuyingFormatAdmin(admin.ModelAdmin):
 
 
 @admin.register(Condition)
-class ConditionAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name')
-
-
 @admin.register(Category)
-class CategoryAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name')
-
-
 @admin.register(Location)
-class LocationAdmin(admin.ModelAdmin):
+class EnumAdmin(admin.ModelAdmin):
     list_display = ('id', 'name')
+
+
+@admin.register(BidStatus)
+@admin.register(CounterOfferStatus)
+class StatusAdmin(admin.ModelAdmin):
+    list_display = ('id', 'name')
+    list_editable = ('name',)
+
+
+@admin.register(CounterOffer)
+class CounterOfferAdmin(admin.ModelAdmin):
+    list_display = ('id', 'bid', 'amount', 'status')
+    list_editable = ('amount', 'status')
