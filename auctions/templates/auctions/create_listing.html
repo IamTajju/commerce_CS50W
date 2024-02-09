@@ -1,0 +1,90 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+<h2 class="px-5 py-4 display-6">Create New Listing</h2>
+<div class="px-5 pb-5">
+    <form action="{% url 'create-listing' %}" method="post" enctype="multipart/form-data" class="form-group">
+        {% csrf_token %}
+        <div class="row gy-4">
+            <div class="col-md-6">
+                <label for="{{ listing_form.title.id_for_label }}">Title:</label>
+                {{ listing_form.title }}
+                <small class="text-muted small-custom"><i class="bi bi-info-circle"></i>
+                    Enter the title of your listing.</small>
+            </div>
+            <div class="col-md-6">
+                <label for="{{ listing_form.hero_image.id_for_label }}">Main Image:</label>
+                {{ listing_form.hero_image }}
+                <small class="text-muted small-custom"><i class="bi bi-info-circle"></i>
+                    Upload a main image that represents your listing.</small>
+            </div>
+            <div class="col-md-12">
+                <label for="{{ listing_form.description.id_for_label }}">Description:</label>
+                {{ listing_form.description }}
+                <small class="text-muted small-custom"><i class="bi bi-info-circle"></i>
+                    Provide a detailed description of your listing.</small>
+            </div>
+            <div class="col-md-4">
+                <label for="{{ listing_form.base_price.id_for_label }}">Base Price in BDT ৳:</label>
+                {{ listing_form.base_price }}
+                <small class="text-muted small-custom"><i class="bi bi-info-circle"></i>
+                    Specify the starting price for your listing. This will be the selling price if your listing is set
+                    to "Buy It Now". For auctions or listings that accept offers, this will be the starting
+                    price.</small>
+            </div>
+            <div class="col-md-4">
+                <label for="{{ listing_form.condition.id_for_label }}">Condition:</label>
+                {{ listing_form.condition }}
+                <small class="text-muted small-custom"><i class="bi bi-info-circle"></i>
+                    Choose the condition of your item from the options provided. This helps buyers understand the
+                    quality of your listing.</small>
+            </div>
+            <div class="col-md-4">
+                <label for="{{ listing_form.category.id_for_label }}">Category:</label>
+                {{ listing_form.category }}
+                <small class="text-muted small-custom"><i class="bi bi-info-circle"></i>
+                    Select the category that best fits your listing.</small>
+            </div>
+            <div class="col-md-6">
+                <label for="{{ listing_form.location.id_for_label }}">Location:</label>
+                {{ listing_form.location }}
+                <small class="text-muted small-custom"><i class="bi bi-info-circle"></i>
+                    Select the location of your listing.</small>
+            </div>
+            <div class="col-md-6">
+                <label for="{{ listing_form.buying_format.id_for_label }}">Buying Format:</label>
+                {{ listing_form.buying_format }}
+                <small class="text-muted small-custom"><i class="bi bi-info-circle"></i>
+                    Choose the buying format for your listing (e.g., Buy It Now, Auction, Accept Offers).</small>
+            </div>
+            <div class="col-auto">
+                <label class="form-check-label" for="{{ listing_form.free_shipping.id_for_label }}">Free
+                    Shipping:</label>
+                {{ listing_form.free_shipping }}
+                <small class="text-muted small-custom"><i class="bi bi-info-circle"></i>
+                    Check this box if you offer free shipping for your listing.</small>
+            </div>
+            <div class="col-auto">
+                <label for="{{ listing_form.local_pickup.id_for_label }}">Local Pickup:</label>
+                {{ listing_form.local_pickup }}
+                <small class="text-muted small-custom"><i class="bi bi-info-circle"></i>
+                    Check this box if you offer local pickup for your listing.</small>
+            </div>
+        </div>
+        <hr>
+        <p class="lead text-decoration-bold">Upload Additional Product Images:</p>
+        <small class="text-muted small-custom"><i class="bi bi-info-circle"></i>
+            Upload additional images to showcase your listing (up to 4 images).</small>
+        {{ images_formset.management_form }}
+        <div class="row">
+            {% for form in images_formset %}
+            <div class="col-md-4">
+                {{ form.as_p }}
+            </div>
+            {% endfor %}
+        </div>
+
+        <input type="submit" class="btn btn-secondary">
+    </form>
+</div>
+{% endblock %}

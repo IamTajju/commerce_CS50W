@@ -4,8 +4,8 @@
 <section class="container-fluid px-5 mt-md-5 mt-3">
     <div class="row align-items-center justify-content-center gx-5">
         <div class="col-lg-4 col-12">
-            <img src="{{listing.image.url }}" class="img-fluid card rounded">
-            {% if listing.buying_format.name != 'Buy It Now' %}
+            <img src="{{listing.hero_image.url }}" class="img-fluid card rounded">
+            {% if listing.buying_format != 'BIN' %}
             <div class="d-block card text-center bg-warning-subtle py-2 mt-2 border-light lead fw-bold">
                 <i class="bi bi-file-bar-graph-fill"></i> {{total_bids}} Bids/Offers so far
             </div>
@@ -33,7 +33,7 @@
                 <div class="d-flex flex-row align-items-center">
                     <strong class="lead fs-3">Price: </strong> <span class="lead fs-3">৳
                         {{listing.get_current_price}}</span><span class="text-muted
-                    ms-3"><mark>{{listing.buying_format}}</mark></span>
+                    ms-3"><mark>{{listing.get_buying_format_display}}</mark></span>
                 </div>
                 {% if not listing.free_shipping %}
                 <div class="d-block">
@@ -55,7 +55,7 @@
                     {% if has_been_outbid %}
                     Update Bid
                     {% else %}
-                    {{listing.buying_format.action_name}}
+                    {{listing.get_buying_format_action_name}}
                     {% endif %}
                 </button>
                 {% endif %}
@@ -82,7 +82,7 @@
     <h4 class="h4 mb-3">You may also like</h4>
     <div class="row align-items-center">
         {% for listing in similar_listings %}
-        {% include 'auctions/listing-card.html' %}
+        {% include 'auctions/components/listing-card-component.html' %}
         {% endfor %}
     </div>
 </section>
@@ -136,8 +136,8 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body justify-content-start">
-                <form action="{% url 'place-bid' listing.title %}" method="post" class="align-items-center my-3">
-                    <h5 class="lead">{{listing.buying_format.action_name}}</h5>
+                <form action="{% url 'make-purchase' listing.title %}" method="post" class="align-items-center my-3">
+                    <h5 class="lead">{{listing.get_buying_format_action_name}}</h5>
                     {% csrf_token %}
                     {% for field in bid_form %}
                     <div class="mb-3">
@@ -151,7 +151,7 @@
                     </div>
                     {% endfor %}
                     <button type="submit" class="btn btn-success btn-sm "><i class="bi bi-bag-fill"></i>
-                        {{listing.buying_format.action_name}}</button>
+                        {{listing.get_buying_format_action_name}}</button>
                 </form>
                 <small class="form-text text-muted"><i class="bi bi-info-circle"></i> Bids higher than current listed
                     price will accepted</small>

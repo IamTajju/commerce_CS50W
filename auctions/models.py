@@ -4,6 +4,7 @@ from users.models import User, Address, PaymentMethod
 from django.db.models import Max
 from django.core.exceptions import ValidationError
 import logging
+from django.utils.translation import gettext_lazy as _
 
 
 class EnumBase(models.Model):
@@ -14,10 +15,6 @@ class EnumBase(models.Model):
 
     class Meta:
         abstract = True
-
-
-class BuyingFormat(EnumBase):
-    action_name = models.CharField(max_length=50)
 
 
 class Condition(EnumBase):
@@ -33,19 +30,25 @@ class Category(EnumBase):
 
 
 class Listing(models.Model):
+    class BuyingFormat(models.TextChoices):
+        BUT_IT_NOW = 'BIN', _('Buy It Now')
+        AUCTION = 'A', _('Auction')
+        ACCEPT_OFFERS = 'AO', _('Accept Offers')
+
     title = models.CharField(max_length=64, primary_key=True)
     description = models.CharField(max_length=300)
-    starting_price = models.IntegerField()
-    image = models.ImageField(
+    base_price = models.PositiveIntegerField()
+    hero_image = models.ImageField(
         upload_to='listings/', max_length=250, default='listings/placeholder-image.png')
     listed_by = models.ForeignKey(
         User, on_delete=models.CASCADE)
 
-    created_at = models.DateTimeField(auto_now_add=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
 
     category = models.ForeignKey(Category, on_delete=models.PROTECT)
 
-    buying_format = models.ForeignKey(BuyingFormat, on_delete=models.PROTECT)
+    buying_format = models.CharField(
+        max_length=3, choices=BuyingFormat.choices, default=BuyingFormat.AUCTION)
 
     condition = models.ForeignKey(Condition, on_delete=models.PROTECT)
 
@@ -60,93 +63,96 @@ class Listing(models.Model):
     purchased = models.BooleanField(default=False)
 
     def __str__(self):
-        return f"{self.title}"
+        return f"{self.title} - {self.buying_format}"
 
-    def get_bids(self):
-        all_bids = Bid.objects.filter(listing=self)
-        return all_bids
-
-    @property
-    def get_current_price(self):
-        max_bid = self.get_bids().aggregate(max_bid=Max('amount'))['max_bid']
-        return max(self.starting_price, max_bid) if max_bid is not None else self.starting_price
-
-    @staticmethod
-    def get_highest_current_price():
-        all_listings = Listing.objects.filter(active=True)
-        highest_price = max(
-            listing.get_current_price for listing in all_listings) if all_listings else 0
-        return highest_price
+    def get_buying_format_action_name(self):
+        action_names = {
+            self.BuyingFormat.BUT_IT_NOW: 'Buy',
+            self.BuyingFormat.AUCTION: 'Place Bid',
+            self.BuyingFormat.ACCEPT_OFFERS: 'Make Offer',
+        }
+        return action_names.get(self.buying_format, None)
 
 
-class AuctionListing(Listing):
-    end_time = models.DateTimeField()
+class ListingAdditionalImages(models.Model):
+    listing = models.ForeignKey(
+        Listing, on_delete=models.CASCADE, related_name='images')
+    image = models.ImageField(
+        upload_to='listings/', max_length=250)
+    
+    class Meta:
+        verbose_name_plural = "Listing Additional Images"
 
 
-class StatusBase(models.Model):
-    name = models.CharField(max_length=50, unique=True)
+class Auction(models.Model):
+    class AuctionStatus(models.TextChoices):
+        SOLD = 'S', _('Sold')
+        ONGOING = 'O', _('Ongoing')
+
+    listing = models.OneToOneField(
+        Listing, on_delete=models.CASCADE, primary_key=True)
+    end_date = models.DateTimeField()
+    highest_bid_amount = models.PositiveIntegerField()
+    auction_status = models.CharField(
+        max_length=2, choices=AuctionStatus.choices, default=AuctionStatus.ONGOING)
+
+
+class PurchaseTransaction(models.Model):
+    listing = models.ForeignKey(Listing, on_delete=models.CASCADE)
+    amount = models.PositiveIntegerField()
+    buyer = models.ForeignKey(
+        User, on_delete=models.PROTECT)
+    shipping_address = models.ForeignKey(
+        Address, on_delete=models.PROTECT)
+    payment_method = models.ForeignKey(
+        PaymentMethod, on_delete=models.PROTECT)
+
+    timestamp = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return self.name
+        return f"{self.buyer.get_full_name()} | {self.listing.title} | BDT {self.amount}"
 
     class Meta:
         abstract = True
 
 
-class BidStatus(StatusBase):
-    @classmethod
-    def get_default_bid_status(cls):
-        ongoing_status, created = cls.objects.get_or_create(
-            name="Ongoing")
-        return ongoing_status.id
+class Bid(PurchaseTransaction):
+    class BidStatus(models.TextChoices):
+        WON = 'W', _("Won")
+        LOST = 'L', _("Lost")
+        ONGOING = 'O', _("Ongoing")
+
+    auction = models.ForeignKey(Auction, on_delete=models.CASCADE)
+    bid_status = models.CharField(
+        max_length=2, choices=BidStatus.choices, default=BidStatus.ONGOING)
 
 
-class Bid(models.Model):
-    amount = models.IntegerField()
-    listing = models.ForeignKey(
-        Listing, on_delete=models.CASCADE, related_name="bid")
-    bid_by = models.ForeignKey(
-        User, on_delete=models.PROTECT, related_name='bid')
-    shipping_address = models.ForeignKey(
-        Address, on_delete=models.PROTECT, related_name="bid")
-    payment_method = models.ForeignKey(
-        PaymentMethod, on_delete=models.PROTECT, related_name='bid')
+class Offer(PurchaseTransaction):
+    class OfferStatus(models.TextChoices):
+        SELLER_ACCEPTED = 'A', _('Accepted')
+        SELLER_REJECTED = 'R', _('Rejected')
+        COUNTER = 'C', _('Counter')
+        PENDING = 'P', _('Pending')
 
-    bid_status = models.ForeignKey(
-        BidStatus, on_delete=models.SET_NULL, null=True, default=BidStatus.get_default_bid_status)
-
-    def __str__(self):
-        return f"Bid by:{self.bid_by} | Bid: {self.amount} | On: {self.listing}"
-
-    def is_valid_bid(self):
-        if self.amount > self.listing.get_current_price or self.listing.buying_format.name == 'Buy It Now':
-            return True
-        return False
-
-
-    def save(self, *args, **kwargs):
-        if self.listing.buying_format == BuyingFormat.objects.get(name='Buy It Now'):
-            self.bid_status = BidStatus.objects.get_or_create(name='Won')[0]
-        super().save(*args, **kwargs)
-
-
-class CounterOfferStatus(StatusBase):
-    @classmethod
-    def get_default_counter_offer_status(cls):
-        pending_response, created = cls.objects.get_or_create(
-            name="Pending Counter Offer Response")
-        return pending_response.id
+    offer_status = models.CharField(
+        max_length=2, choices=OfferStatus.choices, default=OfferStatus.PENDING)
 
 
 class CounterOffer(models.Model):
-    bid = models.OneToOneField(
-        'Bid', on_delete=models.CASCADE, related_name='counter_offer')
-    amount = models.IntegerField()
-    status = models.ForeignKey(
-        CounterOfferStatus, on_delete=models.SET_NULL, null=True, default=CounterOfferStatus.get_default_counter_offer_status)
+    class CounterOfferStatus(models.TextChoices):
+        BUYER_ACCEPTED = 'A', _('Accepted')
+        BUYER_REJECTED = 'R', _('Rejected')
+        PENDING = 'P', _('Pending')
 
-    def __str__(self):
-        return f"Counter Offer for Bid: {self.bid}"
+    offer = models.OneToOneField(Offer, on_delete=models.CASCADE)
+    counter_offer = models.PositiveIntegerField()
+    timestamp = models.DateTimeField(auto_now_add=True)
+    counter_offer_status = models.CharField(
+        max_length=2, choices=CounterOfferStatus.choices, default=CounterOfferStatus.PENDING)
+
+
+class BuyItNow(PurchaseTransaction):
+    pass
 
 
 class Comment(models.Model):

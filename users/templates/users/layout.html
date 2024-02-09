@@ -31,7 +31,7 @@
                 <script>
                     // Redirect to a new page after 2 seconds
                     setTimeout(function () {
-                        window.location.href = "{% url 'place-bid' request.session.listing_title %}";
+                        window.location.href = "{% url 'make-purchase' request.session.listing_title %}";
                     }, 3000);
                 </script>
                 {% else %}

@@ -17,7 +17,9 @@ class FormErrorClassMixin:
         for field_name in self.fields:
             field = self.fields[field_name]
             field.widget.attrs['placeholder'] = field.label
-            field.widget.attrs['class'] = 'form-control'
+            if isinstance(field.widget, (forms.CheckboxInput, forms.CheckboxSelectMultiple, forms.Select, forms.SelectMultiple)):
+                continue  # Skip setting class for checkbox and select fields
+            field.widget.attrs.setdefault('class', 'form-control')
             if field_name in self.errors:
                 field.widget.attrs['class'] += ' is-invalid'
 

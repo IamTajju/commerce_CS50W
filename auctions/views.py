@@ -12,13 +12,15 @@ from django.shortcuts import get_object_or_404
 from django.conf import settings
 
 # Homepage
+
+
 def index(request):
     listings = Listing.objects.filter(active=True)
     categories = Category.objects.all()
-    buying_formats = BuyingFormat.objects.all()
+    buying_formats = Listing.BuyingFormat.choices
     conditions = Condition.objects.all()
     locations = Location.objects.all()
-    max_price = Listing.get_highest_current_price()
+    max_price = 40000  # Listing.get_highest_current_price()
 
     filters = {key.replace("[]", ""): value for key, value in dict(request.GET).items(
     ) if key != "page" and key != "sort"}
@@ -95,10 +97,10 @@ def view_listing(request, title):
 
 
 @login_required(login_url=settings.LOGIN_URL)
-def place_bid(request, title):
+def make_purchase(request, title):
     if request.method == "POST":
         listing = Listing.objects.get(title=title)
-        bid = Bid.objects.filter(listing=listing, bid_by=request.user).first()
+        bid = Bid.objects.filter(listing=listing, buyer=request.user).first()
         if bid:
             form = BidForm(request.POST, listing=listing,
                            user=request.user, instance=bid)
@@ -157,30 +159,23 @@ def getWatchlist(request):
 
 # Form Page to Create New Listing Item
 @login_required(login_url=settings.LOGIN_URL)
-def createListing(request):
-    form = ListingForm()
-    failMessage = ""
-    successMessage = ""
-
-    if request.method == "POST":
-        form = ListingForm(request.POST)
-
-        if form.is_valid():
-            listing = form.cleaned_data
-            newListing = Listing(title=listing['title'], description=listing['description'], starting_price=listing['starting_price'],
-                                 image=listing['image'], listed_by=User.objects.get(username=request.user), category=listing['category'])
-            newListing.save()
-            successMessage = "New Listing Posted!"
-        else:
-            failMessage = "Please try again"
-
-    return render(request, "auctions/createListing.html", {
-        "form": form,
-        "successMessage": successMessage,
-        "failMessage": failMessage,
-        "categories": getAllCategories()
-    }
-    )
+def create_listing(request):
+    if request.method == 'POST':
+        listing_form = ListingForm(
+            request.POST, request.FILES, user=request.user)
+        images_formset = ListingAdditionalImagesFormSet(
+            request.POST, request.FILES, instance=Listing())
+        if listing_form.is_valid() and images_formset.is_valid():
+            listing = listing_form.save()
+            images_formset.instance = listing
+            images_formset.save()
+            messages.success(request, "Listing Created Successfuly")
+            return HttpResponseRedirect(reverse('view-listing', args=[listing.title]))
+            # Redirect to success page or another view
+    else:
+        listing_form = ListingForm(user=request.user)
+        images_formset = ListingAdditionalImagesFormSet(instance=Listing())
+    return render(request, 'auctions/create_listing.html', {'listing_form': listing_form, 'images_formset': images_formset})
 
 
 # Places bid on listing details page
@@ -227,10 +222,10 @@ def closeListing(request, title):
 # Summary page of all the user's bids
 @login_required(login_url=settings.LOGIN_URL)
 def counter_offers(request):
-    bids = Bid.objects.filter(bid_by=request.user)
+    bids = Bid.objects.filter(buyer=request.user)
 
     counter_offers = bids.filter(
-        listing__active=True, listing__buying_format__name='Accepts Offers')
+        listing__active=True, listing__buying_format=Listing.BuyingFormat.ACCEPT_OFFERS)
 
     return render(request, "auctions/counter-offers.html", {
         "counter_offers": counter_offers,
@@ -239,10 +234,10 @@ def counter_offers(request):
 
 @login_required(login_url=settings.LOGIN_URL)
 def ongoing_bids(request):
-    bids = Bid.objects.filter(bid_by=request.user)
+    bids = Bid.objects.filter(buyer=request.user)
 
     ongoing_bids = bids.filter(
-        listing__active=True, listing__buying_format__name='Auction')
+        listing__active=True, listing__buying_format=Listing.BuyingFormat.AUCTION)
 
     return render(request, "auctions/ongoing-bids.html", {
         "ongoing_bids": ongoing_bids,

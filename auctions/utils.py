@@ -25,7 +25,7 @@ def get_field_name_display(field_name):
 def user_has_bid(user, listing):
     if is_anonymous_user(user):
         return False
-    if Bid.objects.filter(listing=listing, bid_by=user).exists():
+    if Bid.objects.filter(listing=listing, buyer=user).exists():
         return True
     return False
 
@@ -36,8 +36,8 @@ def has_been_outbid(user, listing):
 
     auction_bid = Bid.objects.filter(
         listing=listing,
-        bid_by=user,
-        listing__buying_format__name='Auction'
+        buyer=user,
+        listing__buying_format=Listing.BuyingFormat.AUCTION
     ).first()
 
     if auction_bid is not None and auction_bid.amount < listing.get_current_price:
@@ -69,6 +69,8 @@ def apply_filter(queryset, filters, max_price):
         elif param == 'free_shipping':
             value = bool(strtobool(value[0]))
             queryset = queryset.filter(free_shipping=value)
+        elif param == 'buying_format':
+            q_objects &= Q(**{f"{param}__in": value})
         else:
             q_objects &= Q(**{f"{param}__name__in": value})
     return queryset.filter(q_objects)

@@ -59,10 +59,10 @@
                 {% for buying_format in buying_formats%}
                 <div class="form-check my-2">
                     <input class="form-check-input buying-format-checkbox filter-checkbox" type="checkbox"
-                        value="{{buying_format.name}}" id="{{unique_id}}_buying_format_checkBox_{{ forloop.counter}}"
+                        value="{{buying_format.0}}" id="{{unique_id}}_buying_format_checkBox_{{ forloop.counter}}"
                         data-filter-type="buying_format">
                     <label class="form-check-label" for="{{unique_id}}_buying_format_checkBox_{{ forloop.counter}}">
-                        {{buying_format.name}}
+                        {{buying_format.1}}
                     </label>
                 </div>
                 {% endfor %}
@@ -102,7 +102,7 @@
                 Item Location
             </button>
         </h2>
-        <div id="{{unique_id}}_location_accordion" class="accordion-collapse collapse show">
+        <div id="{{unique_id}}_location_accordion" claxss="accordion-collapse collapse show">
             <div class="accordion-body px-0">
                 {% for location in locations %}
                 <div class="form-check my-2">
