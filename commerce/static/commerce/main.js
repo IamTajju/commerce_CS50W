@@ -35,6 +35,10 @@ document.addEventListener('DOMContentLoaded', function () {
     if (document.querySelector('#payment-form')) {
         handlePaymentOptions();
     }
+
+    if (document.querySelector('.listing-images')) {
+        showEnlargedImageModal();
+    }
 });
 
 
@@ -370,4 +374,26 @@ function handlePaymentOptions() {
             input.required = (selectedOption === 'B');
         });
     }
+}
+
+
+function showEnlargedImageModal() {
+    // Get all images
+    var images = document.querySelectorAll('.listing-images');
+
+    // Add click event listener to each image
+    images.forEach(function (image) {
+        image.addEventListener('click', function () {
+            // Get the source of the clicked image
+            var src = this.getAttribute('src');
+
+            // Set the source of the modal image
+            var modalImage = document.getElementById('modalImage');
+            modalImage.setAttribute('src', src);
+
+            // Show the modal
+            var modal = new bootstrap.Modal(document.getElementById('imageModal'));
+            modal.show();
+        });
+    });
 }

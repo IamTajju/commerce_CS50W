@@ -2,16 +2,24 @@
 
 {% block body %}
 <section class="container-fluid px-5 mt-md-5 mt-3">
-    <div class="row align-items-center justify-content-center gx-5">
+    <div class="row align-items-center justify-content-center">
         <div class="col-lg-4 col-12">
-            <img src="{{listing.hero_image.url }}" class="img-fluid card rounded">
+            <img src="{{listing.hero_image.url }}" class="listing-hero-image card rounded listing-images">
+            <div class="row justify-content-start mt-3">
+                {% for image in additional_listing_images %}
+                <div class="col-md-3 col-4">
+                    <img src="{{image.image.url }}"
+                        class="additional-listing-images listing-images card rounded img-thumbnail">
+                </div>
+                {% endfor %}
+            </div>
             {% if listing.buying_format != 'BIN' %}
             <div class="d-block card text-center bg-warning-subtle py-2 mt-2 border-light lead fw-bold">
                 <i class="bi bi-file-bar-graph-fill"></i> {{total_bids}} Bids/Offers so far
             </div>
             {% endif %}
         </div>
-        <div class="col-lg-7 col-12 px-lg-5 px-0 my-lg-0 my-5 ms-lg-5 ms-0 justify-content-center">
+        <div class="col-lg-7 col-12 px-lg-5 px-0 my-lg-0 my-5 justify-content-center">
             <div class="d-block">
                 <h1 class="display-4">{{listing.title}}</h1>
                 <div class="d-block">
@@ -165,6 +173,15 @@
                     href="{% url 'add_shipping_address_redirect' listing.title %}"><i class="bi bi-plus"></i> <small>Add
                         Shipping
                         Address</small></a>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-body text-center">
+                <img id="modalImage" src="" class="img-fluid">
             </div>
         </div>
     </div>

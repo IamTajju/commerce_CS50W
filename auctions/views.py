@@ -52,9 +52,11 @@ def index(request):
 # Listing details page
 def view_listing(request, title):
     listing = get_object_or_404(Listing, title=title)
-
+    additional_listing_images = ListingAdditionalImages.objects.filter(
+        listing=listing)
     response_context = {
         "listing": listing,
+        "additional_listing_images": additional_listing_images,
         'comments': Comment.objects.filter(listing=listing),
         'similar_listings': Listing.objects.filter(
             category=listing.category, location=listing.location).exclude(title=title)[:8],

@@ -10,6 +10,24 @@
     /* Replace with your preferred success color */
 }
 
+.listing-images {
+    cursor: zoom-in;
+}
+
+.listing-hero-image {
+    width: 100%;
+    height: 300px;
+    object-fit: contain;
+    object-position: center;
+}
+
+.additional-listing-images {
+    width: 100%;
+    height: 100px;
+    object-fit: contain;
+    object-position: center;
+}
+
 ul li a {
     color: inherit;
     text-decoration: none;
@@ -453,6 +471,14 @@ body {
 
 
 @media (max-width: 768px) {
+
+    .additional-listing-images {
+        width: 100%;
+        height: 80px;
+        object-fit: contain;
+        object-position: center;
+    }
+
     .overlap-container {
         margin-top: -220px;
     }
