@@ -11,9 +11,8 @@ from django.db.models import Max, Count
 from django.shortcuts import get_object_or_404
 from django.conf import settings
 
+
 # Homepage
-
-
 def index(request):
     listings = Listing.objects.filter(active=True)
     categories = Category.objects.all()
@@ -54,6 +53,7 @@ def view_listing(request, title):
     listing = get_object_or_404(Listing, title=title)
     additional_listing_images = ListingAdditionalImages.objects.filter(
         listing=listing)
+    
     response_context = {
         "listing": listing,
         "additional_listing_images": additional_listing_images,
@@ -98,6 +98,7 @@ def view_listing(request, title):
     return render(request, "auctions/listing-details.html", response_context)
 
 
+
 @login_required(login_url=settings.LOGIN_URL)
 def make_purchase(request, title):
     if request.method == "POST":
@@ -120,7 +121,6 @@ def make_purchase(request, title):
 
 # Place comment on Listing Details page
 
-
 @login_required(login_url=settings.LOGIN_URL)
 def comment(request, title):
     if request.method == "POST":
@@ -135,8 +135,6 @@ def comment(request, title):
     return HttpResponseRedirect(reverse('view-listing', args=[title]))
 
 # Adds Listing to Watchlist and returns to Listing Details Page
-
-
 @login_required(login_url=settings.LOGIN_URL)
 def add_to_watch_list(request, title):
     user = User.objects.get(username=request.user)

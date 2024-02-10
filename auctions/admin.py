@@ -18,6 +18,12 @@ class ListingAdmin(admin.ModelAdmin):
     search_fields = ['title', 'description', 'listed_by__username']
 
 
+@admin.register(Auction)
+class AuctionAdmin(admin.ModelAdmin):
+    list_display = [field.name for field in Auction._meta.fields]
+    list_filter = ['listing', 'auction_status']
+
+
 @admin.register(Comment)
 class CommentAdmin(admin.ModelAdmin):
     list_display = ['listing', 'user', 'comment', 'date']

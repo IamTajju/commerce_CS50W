@@ -9,7 +9,7 @@ import uuid
 @receiver(pre_save, sender=User)
 def send_email_token(sender, instance, **kwargs):
     if instance.id is None:
-        if not instance.is_oauth_registered:
+        if not instance.is_oauth_registered and not instance.is_superuser:
             instance.is_active = False
             token = str(uuid.uuid4())
             instance.email_verification_token = token
