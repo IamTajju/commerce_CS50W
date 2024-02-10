@@ -19,7 +19,7 @@ def index(request):
     buying_formats = Listing.BuyingFormat.choices
     conditions = Condition.objects.all()
     locations = Location.objects.all()
-    max_price = 40000  # Listing.get_highest_current_price()
+    max_price = Listing.get_highest_price()
 
     filters = {key.replace("[]", ""): value for key, value in dict(request.GET).items(
     ) if key != "page" and key != "sort"}
@@ -43,7 +43,7 @@ def index(request):
         'buying_formats': buying_formats,
         'conditions': conditions,
         'locations': locations,
-        'max_price': max_price,
+        'max_price': format_price(max_price),
     }
     )
 

@@ -1,7 +1,7 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from users.models import User, Address, PaymentMethod
-from django.db.models import Max
+from django.db.models import Max, F, Value, CharField, Case, When, IntegerField
 from django.core.exceptions import ValidationError
 import logging
 from django.utils.translation import gettext_lazy as _
@@ -76,6 +76,27 @@ class Listing(models.Model):
     @property
     def get_price(self):
         return self.auction.highest_bid_amount if self.buying_format == self.BuyingFormat.AUCTION else self.base_price
+
+    @classmethod
+    def get_highest_price(cls):
+        # Annotate each listing with its maximum price
+        listings_with_prices = cls.objects.annotate(
+            price=Case(
+                When(buying_format=cls.BuyingFormat.BUT_IT_NOW,
+                     then=F('base_price')),
+                When(buying_format=cls.BuyingFormat.AUCTION,
+                     then=F('auction__highest_bid_amount')),
+                When(buying_format=cls.BuyingFormat.ACCEPT_OFFERS, then=F(
+                    'base_price')),  # Consider base price for accept offers
+                default=Value(0),
+                # Set the output field to CharField to handle different types
+                output_field=CharField(),
+            )
+        )
+        # Get the maximum price across all listings
+        highest_price = listings_with_prices.aggregate(Max('price'))
+        # Return 0 if there are no listings
+        return highest_price['price__max'] or 0
 
 
 class ListingAdditionalImages(models.Model):

@@ -10,6 +10,16 @@ from django.contrib.auth.models import AnonymousUser
 # Gets the list of active categories
 
 
+def format_price(price):
+    suffixes = ['k', 'M', 'B', 'T']
+    magnitude = 0
+    while price >= 1000 and magnitude < len(suffixes) - 1:
+        magnitude += 1
+        price /= 1000
+
+    return price if magnitude == 0 else f"{price:.0f}{suffixes[magnitude-1]}"
+
+
 def is_anonymous_user(user):
     if isinstance(user, AnonymousUser):
         return True
