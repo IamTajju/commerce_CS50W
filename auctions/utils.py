@@ -71,7 +71,7 @@ def apply_filter(queryset, filters, max_price):
         if param == 'price_range':
             threshold = ((float(value[0])/100.0)*max_price)
             queryset_beyond_price = [
-                query for query in queryset if query.get_price > threshold]
+                query.pk for query in queryset if query.get_price > threshold]
             queryset = queryset.exclude(pk__in=queryset_beyond_price)
         elif param == 'local_pickup':
             value = bool(strtobool(value[0]))
@@ -106,21 +106,9 @@ class Paginator:
         starting_index = max((self.current_page-1), 0)*self.num_of_items
         ending_index = self.current_page*self.num_of_items
         if self.sort_option == 'high-to-low':
-            return self.listings.annotate(
-                current_price=Coalesce(
-                    Max('bid__amount', filter=~Q(bid=None)),
-                    F('base_price'),
-                    output_field=IntegerField()
-                )
-            ).order_by('-current_price')[starting_index:ending_index]
+            return Listing.annotate_price(self.listings).order_by('-price')[starting_index:ending_index]
         elif self.sort_option == 'low-to-high':
-            return self.listings.annotate(
-                current_price=Coalesce(
-                    Max('bid__amount', filter=~Q(bid=None)),
-                    F('base_price'),
-                    output_field=IntegerField()
-                )
-            ).order_by('current_price')[starting_index:ending_index]
+            return Listing.annotate_price(self.listings).order_by('price')[starting_index:ending_index]
         return self.listings[starting_index:ending_index]
 
     def has_previous(self):

@@ -43,7 +43,8 @@ def index(request):
         'buying_formats': buying_formats,
         'conditions': conditions,
         'locations': locations,
-        'max_price': format_price(max_price),
+        'max_price': max_price,
+        'max_price_view': format_price(max_price),
     }
     )
 
