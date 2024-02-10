@@ -22,4 +22,21 @@
 </table>
 <a class="btn btn-primary float-end mt-5" href="{% url 'add_payment_method' %}"><i class="bi bi-plus"></i> Add New
     Payment Method</a>
+<script>
+    function confirmPaymentMethodDelete(methodId) {
+        Swal.fire({
+            title: 'Are you sure?',
+            text: 'You won\'t be able to revert this!',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: customDangerColor,
+            cancelButtonColor: customDarkColor,
+            confirmButtonText: 'Yes, delete it!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = `{% url 'remove-payment-method' 0 %}`.replace('0', methodId);
+            }
+        });
+    }
+</script>
 {% endblock child %}

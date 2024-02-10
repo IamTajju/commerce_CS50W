@@ -51,6 +51,7 @@ def index(request):
 
 # Listing details page
 def view_listing(request, title):
+    # Listing details
     listing = get_object_or_404(Listing, title=title)
     additional_listing_images = ListingAdditionalImages.objects.filter(
         listing=listing)
@@ -69,12 +70,12 @@ def view_listing(request, title):
         'total_bids': Bid.objects.filter(listing=listing).count()
     }
 
+    # Logged In User action
     if response_context['user_logged_in']:
         response_context['comment_form'] = CommentForm()
         response_context['user_has_bid'] = user_has_bid(request.user, listing)
 
-        redirect = request.session.pop('listing_title', None)
-        if redirect or "view-listing-with-bid-form" in request.path:
+        if "/open-modal/" in request.path:
             response_context['open_modal'] = True
 
         # Create a new BidForm instance and set its errors

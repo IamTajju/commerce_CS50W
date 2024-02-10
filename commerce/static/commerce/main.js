@@ -144,7 +144,6 @@ function handleCategoryLinks() {
 }
 
 
-
 function handleFiltering() {
     var baseUrl = window.location.protocol + "//" + window.location.hostname + (window.location.port ? ":" + window.location.port : "") + "/filter/";
     var currentPage = 1
@@ -291,40 +290,6 @@ function rejectCounterOffer() {
         }
     });
 }
-
-function confirmShippingAddressDelete(addressId) {
-    Swal.fire({
-        title: 'Are you sure?',
-        text: 'You won\'t be able to revert this!',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: customDangerColor,
-        cancelButtonColor: customDarkColor,
-        confirmButtonText: 'Yes, delete it!'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            // User clicked "Yes, delete it!" - perform the deletion action
-            window.location.href = "{% url 'remove-shipping-address' 0 %}".replace('0', addressId);
-        }
-    });
-}
-
-function confirmPaymentMethodDelete(methodId) {
-    Swal.fire({
-        title: 'Are you sure?',
-        text: 'You won\'t be able to revert this!',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: customDangerColor,
-        cancelButtonColor: customDarkColor,
-        confirmButtonText: 'Yes, delete it!'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            window.location.href = "{% url 'remove-payment-method' 0 %}".replace('0', methodId);
-        }
-    });
-}
-
 
 function confirmProfileChange() {
     Swal.fire({

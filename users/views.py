@@ -190,6 +190,8 @@ def payment_method_form_view(request, redirect=None):
     if request.method == 'POST':
         payment_method_form = PaymentMethodForm(request.POST)
 
+        redirect = request.session.pop('listing_title', None)
+
         if payment_method_form.is_valid():
             payment_option = payment_method_form.cleaned_data['payment_option']
             user = request.user  # Assuming the user is authenticated
@@ -208,6 +210,11 @@ def payment_method_form_view(request, redirect=None):
                     messages.success(
                         request, 'Payment method added successfully.')
 
+                    if redirect:
+                        return HttpResponseRedirect(reverse('view-listing-with-open-modal', args=[redirect]))
+                    else:
+                        return HttpResponseRedirect(reverse('view-payment-methods'))
+
                 else:
                     payment_method.delete()
 
@@ -219,6 +226,11 @@ def payment_method_form_view(request, redirect=None):
                     bkash_payment.save()
                     messages.success(
                         request, 'Payment method added successfully.')
+
+                    if redirect:
+                        return HttpResponseRedirect(reverse('view-listing-with-open-modal', args=[redirect]))
+                    else:
+                        return HttpResponseRedirect(reverse('view-payment-methods'))
 
                 else:
                     payment_method.delete()
@@ -246,6 +258,12 @@ def shipping_address_form_view(request, redirect=None):
             address.save()
             messages.success(
                 request, 'Shipping Address was added successfully.')
+
+            redirect = request.session.pop('listing_title', None)
+            if redirect:
+                return HttpResponseRedirect(reverse('view-listing-with-open-modal', args=[redirect]))
+            else:
+                return HttpResponseRedirect(reverse('view-shipping-address'))
 
     return render(request, 'users/shipping-address-form.html', {'form': form})
 
