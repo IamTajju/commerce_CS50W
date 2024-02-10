@@ -13,7 +13,7 @@ from django.utils import timezone
 class User(AbstractUser):
     email = models.EmailField(unique=True)
     watchlist = models.ManyToManyField(
-        'auctions.Listing', null=True, blank=True)
+        'auctions.Listing')
     is_oauth_registered = models.BooleanField(default=False)
     display_picture = models.ImageField(
         upload_to='display-pictures/', max_length=250, default='display-pictures/default-dp.png')

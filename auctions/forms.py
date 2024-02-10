@@ -4,7 +4,7 @@ from django.forms.forms import Form
 from .models import Comment, Listing, Bid, Offer, BuyItNow, Auction, ListingAdditionalImages
 from users.models import PaymentMethod, Address
 from users.forms import FormErrorClassMixin
-
+from django.forms import inlineformset_factory, BaseInlineFormSet
 
 class ListingForm(FormErrorClassMixin, ModelForm):
     hero_image = forms.ImageField(
@@ -47,9 +47,15 @@ class ListingAdditionalImagesForm(FormErrorClassMixin, ModelForm):
         model = ListingAdditionalImages
         fields = ['image']
 
+class CustomInlineFormSet(BaseInlineFormSet):
+    def clean(self):
+        super().clean()
+        for form in self.forms:
+            if form.cleaned_data.get('image') is None:
+                self.forms.remove(form)
 
 ListingAdditionalImagesFormSet = forms.inlineformset_factory(
-    Listing, ListingAdditionalImages, form=ListingAdditionalImagesForm, extra=4)
+    Listing, ListingAdditionalImages, form=ListingAdditionalImagesForm, extra=4, min_num=0, formset=CustomInlineFormSet)
 
 
 class PurchaseForm(ModelForm):
@@ -127,7 +133,7 @@ class OfferForm(FormErrorClassMixin, PurchaseForm):
         return cleaned_data
 
 
-class BuyItNow(FormErrorClassMixin, PurchaseForm):
+class BuyItNowForm(FormErrorClassMixin, PurchaseForm):
     class Meta(PurchaseForm.Meta):
         model = BuyItNow
 

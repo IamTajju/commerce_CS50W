@@ -10,6 +10,7 @@ from datetime import date
 from django.db.models import Max, Count
 from django.shortcuts import get_object_or_404
 from django.conf import settings
+from django.forms import inlineformset_factory
 
 
 # Homepage
@@ -72,30 +73,20 @@ def view_listing(request, title):
 
     # Logged In User action
     if response_context['user_logged_in']:
-        response_context['comment_form'] = CommentForm()
-        response_context['user_has_bid'] = user_has_bid(request.user, listing)
-
-        if "/open-modal/" in request.path:
-            response_context['open_modal'] = True
-
-        # Create a new BidForm instance and set its errors
-        existing_bid = has_been_outbid(request.user, listing)
-        response_context['has_been_outbid'] = existing_bid
-        if existing_bid:
-            response_context['bid_form'] = BidForm(instance=existing_bid,
-                                                   listing=listing, user=request.user)
-        else:
-            response_context['bid_form'] = BidForm(
-                listing=listing, user=request.user)
 
         # Retrieve bid form errors from the session
         error_data = request.session.pop('data', None)
 
-        # If there are errors, update the form's errors dictionary
-        if error_data:
-            response_context['bid_form'] = BidForm(
-                data=error_data, listing=listing, user=request.user)
+        purchase_manager = ListingPurchaseManager(
+            listing=listing, user=request.user, error_data=error_data)
+
+        response_context['comment_form'] = CommentForm()
+
+        # Open modal bc redirected from payment/shipping form
+        if "/open-modal/" in request.path or error_data:
             response_context['open_modal'] = True
+
+        response_context['purchase_manager'] = purchase_manager
 
     return render(request, "auctions/listing-details.html", response_context)
 
@@ -113,6 +104,7 @@ def make_purchase(request, title):
         if form.is_valid():
             form.save()
             messages.success(request, "Bid/Offer placed successfully")
+
         else:
             print(form.errors)
             # Store form data in session and redirect to the view_listing view
@@ -151,6 +143,7 @@ def add_to_watch_list(request, title):
 # Form Page to Create New Listing Item
 @login_required(login_url=settings.LOGIN_URL)
 def create_listing(request):
+    header = 'Create New Listing'
     if request.method == 'POST':
         listing_form = ListingForm(
             request.POST, request.FILES, user=request.user)
@@ -166,10 +159,44 @@ def create_listing(request):
     else:
         listing_form = ListingForm(user=request.user)
         images_formset = ListingAdditionalImagesFormSet(instance=Listing())
-    return render(request, 'auctions/create_listing.html', {'listing_form': listing_form, 'images_formset': images_formset})
 
+    return render(request, 'auctions/listing-form.html', {'listing_form': listing_form, 'images_formset': images_formset, 'header': header, 'action': 'create'})
+
+
+# Form Page to Edit Listing Item
+@login_required(login_url=settings.LOGIN_URL)
+def edit_listing(request, title):
+    listing = get_object_or_404(Listing, title=title, listed_by=request.user)
+    header = f'Edit Listing Item'
+    formset = inlineformset_factory(
+        Listing, ListingAdditionalImages, form=ListingAdditionalImagesForm, extra=0, min_num=0, formset=CustomInlineFormSet)
+
+    if request.method == 'POST':
+        listing_form = ListingForm(
+            request.POST, request.FILES, user=request.user, instance=listing)
+        print(request.POST)
+        images_formset = formset(
+            request.POST, request.FILES, instance=listing)
+
+        if listing_form.is_valid() and images_formset.is_valid():
+            listing = listing_form.save()
+            images_formset.instance = listing
+            images_formset.save()
+            messages.success(request, "Listing Edited Successfuly")
+            return HttpResponseRedirect(reverse('view-listing', args=[listing.title]))
+
+        else:
+            print(images_formset.error_class)
+            print(images_formset.errors)
+    else:
+        listing_form = ListingForm(instance=listing, user=request.user)
+        images_formset = formset(instance=listing)
+
+    return render(request, 'auctions/listing-form.html', {'listing_form': listing_form, 'images_formset': images_formset, 'header': header, 'action': 'edit', 'title': title})
 
 # Summary page of all the user's bids
+
+
 @login_required(login_url=settings.LOGIN_URL)
 def counter_offers(request):
     bids = Bid.objects.filter(buyer=request.user)

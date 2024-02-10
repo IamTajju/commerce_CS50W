@@ -35,9 +35,9 @@ class Listing(models.Model):
         BUT_IT_NOW = 'BIN', _('Buy It Now')
         AUCTION = 'A', _('Auction')
         ACCEPT_OFFERS = 'AO', _('Accept Offers')
-
-    title = models.CharField(max_length=64, primary_key=True)
-    description = models.CharField(max_length=300)
+    id = models.BigAutoField(primary_key=True)
+    title = models.CharField(max_length=100)
+    description = models.CharField(max_length=400, blank=False)
     base_price = models.PositiveIntegerField()
     hero_image = models.ImageField(
         upload_to='listings/', max_length=250, default='listings/placeholder-image.png')
@@ -125,7 +125,7 @@ class PurchaseTransaction(models.Model):
     listing = models.ForeignKey(Listing, on_delete=models.CASCADE)
     amount = models.PositiveIntegerField()
     buyer = models.ForeignKey(
-        User, on_delete=models.PROTECT)
+        User, on_delete=models.PROTECT, related_name='%(class)s_buyer')
     shipping_address = models.ForeignKey(
         Address, on_delete=models.PROTECT)
     payment_method = models.ForeignKey(

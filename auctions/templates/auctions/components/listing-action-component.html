@@ -1,0 +1,25 @@
+{% if not user_logged_in %}
+<a class="btn btn-primary" href="{% url 'login' %}">Log in to Bid</a>
+{% elif purchase_manager.is_seller %}
+<a class="btn btn-primary" href="{% url 'edit-listing' listing.title %}">Edit Listing</a>
+{% elif purchase_manager.attempted_purchase and not purchase_manager.form %}
+<a class="btn btn-primary">View Bid</a>
+{% else %}
+<button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
+    <i class="bi bi-bag-fill"></i>
+    {% if purchase_manager.form and purchase.manager.attempted_purchase %}
+    Update Bid
+    {% else %}
+    {{listing.get_buying_format_action_name}}
+    {% endif %}
+</button>
+{% if listing in request.user.watchlist.all %}
+<a class="btn btn-outline-success disabled">
+    <i class="bi bi-check"></i> Added to Watchlist
+</a>
+{% else %}
+<a class="btn btn-outline-primary" href="{% url 'add-to-watchlist' listing.title %}">
+    <i class="bi bi-eyeglasses"></i> Add to Watchlist
+</a>
+{% endif %}
+{% endif %}

@@ -1,4 +1,4 @@
-from .models import Listing, Comment, Bid, Category
+from .models import Listing, Comment, Bid, Category, PurchaseTransaction
 from users.models import User
 from distutils.util import strtobool
 from django.db.models import Q, F, Max, Case, When, Value, IntegerField
@@ -6,6 +6,7 @@ from django.db.models.functions import Coalesce
 from functools import reduce
 from operator import and_, or_
 import math
+from .forms import BidForm, OfferForm, BuyItNowForm
 from django.contrib.auth.models import AnonymousUser
 # Gets the list of active categories
 
@@ -32,37 +33,53 @@ def get_field_name_display(field_name):
     return formatted_data
 
 
-def user_has_bid(user, listing):
-    if is_anonymous_user(user):
+class ListingPurchaseManager:
+    def __init__(self, user, listing, error_data):
+        self.form_mapping = {
+            Listing.BuyingFormat.AUCTION: BidForm,
+            Listing.BuyingFormat.ACCEPT_OFFERS: OfferForm,
+            Listing.BuyingFormat.BUT_IT_NOW: BuyItNowForm,
+        }
+        self.form_class = self.form_mapping.get(listing.buying_format)
+        self.user = user
+        self.listing = listing
+        self.attempted_purchase = self.has_transaction()
+        self.form = self.get_purchase_form(error_data)
+
+    def is_seller(self):
+        if self.listing.listed_by == self.user:
+            return True
         return False
-    if Bid.objects.filter(listing=listing, buyer=user).exists():
-        return True
-    return False
 
+    def has_transaction(self):
+        transaction_exists = self.form_class.Meta.model.objects.filter(
+            buyer=self.user, listing=self.listing).exists()
+        return transaction_exists
 
-def has_been_outbid(user, listing):
-    if is_anonymous_user(user):
-        return False
+    def get_previous_bid_if_outbid(self):
+        if self.listing.buying_format == Listing.BuyingFormat.AUCTION and self.attempted_purchase:
+            bid = self.user.bids_buyer.filter(listing=self.listing).first()
+            return bid if bid.amount < self.listing.auction.highest_bid_amount else None
+        else:
+            return None
 
-    auction_bid = Bid.objects.filter(
-        listing=listing,
-        buyer=user,
-        listing__buying_format=Listing.BuyingFormat.AUCTION
-    ).first()
+    def get_purchase_form(self, error_data):
+        if self.is_seller() or is_anonymous_user(self.user):
+            return None
 
-    if auction_bid is not None and auction_bid.amount < listing.get_price:
-        return auction_bid
+        if error_data:
+            return self.form_class(data=error_data, listing=self.listing, user=self.user)
 
-    return False
+        if self.listing.buying_format == Listing.BuyingFormat.AUCTION:
+            previous_bid = self.get_previous_bid_if_outbid()
+            if previous_bid:
+                return self.form_class(instance=previous_bid, listing=self.listing, user=self.user)
 
+        if not self.attempted_purchase:
+            return self.form_class(listing=self.listing, user=self.user)
 
-def getAllCategories():
-    return Category.objects.all()
-
-
-def getComments(Listing):
-    Comments = Comment.objects.filter(listing=Listing)
-    return list(Comments)
+        # If there's no appropriate form class found, return None
+        return None
 
 
 def apply_filter(queryset, filters, max_price):
