@@ -20,12 +20,12 @@
             <td>{{forloop.counter}}</td>
             <td><img class="rounded" src="{{ bid.listing.hero_image.url }}" width="80px"></td>
             <td><a href="{% url 'view-listing' bid.listing.title%}">{{ bid.listing }}</a></td>
-            <td>৳ {{ bid.listing.starting_price }}</td>
+            <td>৳ {{ bid.listing.base_price }}</td>
             <td>৳ {{ bid.amount }}</td>
             <td class="me-5">
                 <span
                     class="badge {% if bid.amount >= bid.listing.get_current_price %}badge-bg-success{% else %}badge-bg-danger{% endif %} fs-6">৳
-                    {{ bid.listing.get_current_price}}</span>
+                    {{ bid.listing.get_price}}</span>
             </td>
             <td class="me-5">
                 <div class="d-flex ">

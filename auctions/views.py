@@ -53,7 +53,7 @@ def view_listing(request, title):
     listing = get_object_or_404(Listing, title=title)
     additional_listing_images = ListingAdditionalImages.objects.filter(
         listing=listing)
-    
+
     response_context = {
         "listing": listing,
         "additional_listing_images": additional_listing_images,
@@ -98,7 +98,6 @@ def view_listing(request, title):
     return render(request, "auctions/listing-details.html", response_context)
 
 
-
 @login_required(login_url=settings.LOGIN_URL)
 def make_purchase(request, title):
     if request.method == "POST":
@@ -121,6 +120,7 @@ def make_purchase(request, title):
 
 # Place comment on Listing Details page
 
+
 @login_required(login_url=settings.LOGIN_URL)
 def comment(request, title):
     if request.method == "POST":
@@ -135,6 +135,8 @@ def comment(request, title):
     return HttpResponseRedirect(reverse('view-listing', args=[title]))
 
 # Adds Listing to Watchlist and returns to Listing Details Page
+
+
 @login_required(login_url=settings.LOGIN_URL)
 def add_to_watch_list(request, title):
     user = User.objects.get(username=request.user)
@@ -142,19 +144,6 @@ def add_to_watch_list(request, title):
     user.watchlist.add(item)
     user.save()
     return HttpResponseRedirect(reverse('view-listing', args=[title]))
-
-
-# User's Watchlist Listings Page
-@login_required(login_url=settings.LOGIN_URL)
-def getWatchlist(request):
-    bidForm = BidForm()
-    user = User.objects.get(username=request.user)
-    listings = user.watchlist.all()
-    return render(request, "auctions/watchlist.html", {
-        "listings": listings,
-        "bidForm": bidForm,
-        "categories": getAllCategories()
-    })
 
 
 # Form Page to Create New Listing Item
@@ -176,47 +165,6 @@ def create_listing(request):
         listing_form = ListingForm(user=request.user)
         images_formset = ListingAdditionalImagesFormSet(instance=Listing())
     return render(request, 'auctions/create_listing.html', {'listing_form': listing_form, 'images_formset': images_formset})
-
-
-# Places bid on listing details page
-@login_required(login_url=settings.LOGIN_URL)
-def bids(request, title):
-    if request.method == "POST":
-        form = BidForm(request.POST)
-
-        if form.is_valid():
-            bid = form.cleaned_data
-
-            currentBid = Listing.objects.get(title=title).getCurrentPrice()
-            noOfBids = len(Listing.objects.get(title=title).getBids())
-
-            # Checks if bid placed is higher than current winning bid or if its the valid first bid.
-            if ((bid['price'] > currentBid) or (bid['price'] == currentBid) and (noOfBids == 0)):
-                newBid = Bid(price=bid['price'], listing=Listing.objects.get(
-                    title=title), bidBy=User.objects.get(username=request.user))
-                newBid.save()
-                # Stores the user prompts in sessions to let viewListingDetails view to access it.
-                request.session['successMessage'] = "Bid Successfully Placed!"
-                request.session['failMessage'] = ""
-
-            else:
-                request.session['failMessage'] = "Please place a higher bid."
-                request.session['successMessage'] = ""
-
-        else:
-            request.session['failMessage'] = "Please try again"
-            request.session['successMessage'] = ""
-
-    return view_listing(request, title)
-
-
-# Closes a Listing
-@login_required(login_url=settings.LOGIN_URL)
-def closeListing(request, title):
-    item = Listing.objects.get(title=title)
-    item.active = False
-    item.save()
-    return view_listing(request, title)
 
 
 # Summary page of all the user's bids

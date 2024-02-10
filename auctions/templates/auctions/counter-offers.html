@@ -20,13 +20,13 @@
             <td>{{forloop.counter}}</td>
             <td><img src="{{ bid.listing.hero_image.url }}" width="80px"></td>
             <td><a href="{% url 'view-listing' bid.listing.title%}" style="color: #2E2E2E">{{ bid.listing }}</a></td>
-            <td>৳ {{ bid.listing.starting_price }}</td>
+            <td>৳ {{ bid.listing.base_price }}</td>
             <td>৳ {{ bid.amount }}</td>
             {% if forloop.counter == 1 %}
             <td><span class="badge badge-bg-danger fs-6">Pending</span></td>
             {% else %}
             <td class="me-5">
-                <span class="badge badge-bg-success fs-6">৳ {{ bid.listing.get_current_price}}</span>
+                <span class="badge badge-bg-success fs-6">৳ {{ bid.listing.get_price}}</span>
             </td>
             {% endif %}
             <td class="me-5">

@@ -40,7 +40,7 @@ def has_been_outbid(user, listing):
         listing__buying_format=Listing.BuyingFormat.AUCTION
     ).first()
 
-    if auction_bid is not None and auction_bid.amount < listing.get_current_price:
+    if auction_bid is not None and auction_bid.amount < listing.get_price:
         return auction_bid
 
     return False
@@ -61,7 +61,7 @@ def apply_filter(queryset, filters, max_price):
         if param == 'price_range':
             threshold = ((float(value[0])/100.0)*max_price)
             queryset_beyond_price = [
-                query for query in queryset if query.get_current_price > threshold]
+                query for query in queryset if query.get_price > threshold]
             queryset = queryset.exclude(pk__in=queryset_beyond_price)
         elif param == 'local_pickup':
             value = bool(strtobool(value[0]))
@@ -99,7 +99,7 @@ class Paginator:
             return self.listings.annotate(
                 current_price=Coalesce(
                     Max('bid__amount', filter=~Q(bid=None)),
-                    F('starting_price'),
+                    F('base_price'),
                     output_field=IntegerField()
                 )
             ).order_by('-current_price')[starting_index:ending_index]
@@ -107,7 +107,7 @@ class Paginator:
             return self.listings.annotate(
                 current_price=Coalesce(
                     Max('bid__amount', filter=~Q(bid=None)),
-                    F('starting_price'),
+                    F('base_price'),
                     output_field=IntegerField()
                 )
             ).order_by('current_price')[starting_index:ending_index]

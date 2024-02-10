@@ -73,13 +73,17 @@ class Listing(models.Model):
         }
         return action_names.get(self.buying_format, None)
 
+    @property
+    def get_price(self):
+        return self.auction.highest_bid_amount if self.buying_format == self.BuyingFormat.AUCTION else self.base_price
+
 
 class ListingAdditionalImages(models.Model):
     listing = models.ForeignKey(
         Listing, on_delete=models.CASCADE, related_name='images')
     image = models.ImageField(
         upload_to='listings/', max_length=250)
-    
+
     class Meta:
         verbose_name_plural = "Listing Additional Images"
 
