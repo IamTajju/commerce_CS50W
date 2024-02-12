@@ -29,3 +29,23 @@ class CommentAdmin(admin.ModelAdmin):
     list_display = ['listing', 'user', 'comment', 'date']
     list_filter = ['listing__title', 'user__username', 'date']
     search_fields = ['listing__title', 'user__username']
+
+
+@admin.register(Bid)
+class BidAdmin(admin.ModelAdmin):
+    list_display = [field.name for field in Bid._meta.fields]
+
+
+@admin.register(Offer)
+class OfferAdmin(admin.ModelAdmin):
+    list_display = [field.name for field in Offer._meta.fields]
+
+
+@admin.register(BuyItNow)
+class BuyItNowAdmin(admin.ModelAdmin):
+    list_display = [field.name for field in BuyItNow._meta.fields]
+
+
+@admin.register(CounterOffer)
+class CounterOfferAdmin(admin.ModelAdmin):
+    list_display = [field.name for field in CounterOffer._meta.fields]

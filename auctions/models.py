@@ -160,6 +160,7 @@ class Offer(PurchaseTransaction):
 
     offer_status = models.CharField(
         max_length=2, choices=OfferStatus.choices, default=OfferStatus.PENDING)
+    
 
 
 class CounterOffer(models.Model):

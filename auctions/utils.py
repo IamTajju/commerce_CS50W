@@ -33,8 +33,8 @@ def get_field_name_display(field_name):
     return formatted_data
 
 
-class ListingPurchaseManager:
-    def __init__(self, user, listing, error_data):
+class PurchaseFormManager:
+    def __init__(self, user, listing, error_data, post_data):
         self.form_mapping = {
             Listing.BuyingFormat.AUCTION: BidForm,
             Listing.BuyingFormat.ACCEPT_OFFERS: OfferForm,
@@ -44,7 +44,7 @@ class ListingPurchaseManager:
         self.user = user
         self.listing = listing
         self.attempted_purchase = self.has_transaction()
-        self.form = self.get_purchase_form(error_data)
+        self.form = self.get_purchase_form(error_data, post_data)
 
     def is_seller(self):
         if self.listing.listed_by == self.user:
@@ -54,29 +54,35 @@ class ListingPurchaseManager:
     def has_transaction(self):
         transaction_exists = self.form_class.Meta.model.objects.filter(
             buyer=self.user, listing=self.listing).exists()
+        print(transaction_exists)
         return transaction_exists
 
     def get_previous_bid_if_outbid(self):
         if self.listing.buying_format == Listing.BuyingFormat.AUCTION and self.attempted_purchase:
-            bid = self.user.bids_buyer.filter(listing=self.listing).first()
+            bid = self.user.bid_buyer.filter(listing=self.listing).first()
             return bid if bid.amount < self.listing.auction.highest_bid_amount else None
-        else:
-            return None
+        return None
 
-    def get_purchase_form(self, error_data):
+    def get_purchase_form(self, error_data, post_data):
         if self.is_seller() or is_anonymous_user(self.user):
             return None
 
         if error_data:
             return self.form_class(data=error_data, listing=self.listing, user=self.user)
 
-        if self.listing.buying_format == Listing.BuyingFormat.AUCTION:
-            previous_bid = self.get_previous_bid_if_outbid()
-            if previous_bid:
-                return self.form_class(instance=previous_bid, listing=self.listing, user=self.user)
+        previous_bid = self.get_previous_bid_if_outbid()
 
+        # For passing form user input from request.POST
+        if post_data:
+            return self.form_class(post_data, instance=previous_bid, listing=self.listing, user=self.user)
+
+        # If user is making first purchase attempt for listing send new fresh form to create purchase
         if not self.attempted_purchase:
             return self.form_class(listing=self.listing, user=self.user)
+
+        # If user has been outbid let user edit previous bid
+        if previous_bid:
+            return self.form_class(instance=previous_bid, listing=self.listing, user=self.user)
 
         # If there's no appropriate form class found, return None
         return None

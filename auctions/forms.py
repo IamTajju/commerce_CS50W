@@ -6,6 +6,7 @@ from users.models import PaymentMethod, Address
 from users.forms import FormErrorClassMixin
 from django.forms import inlineformset_factory, BaseInlineFormSet
 
+
 class ListingForm(FormErrorClassMixin, ModelForm):
     hero_image = forms.ImageField(
         help_text='Upload a hero image for the main display.')
@@ -29,7 +30,11 @@ class ListingForm(FormErrorClassMixin, ModelForm):
 
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)
+        self.instance = kwargs.get('instance', None)
         super(ListingForm, self).__init__(*args, **kwargs)
+        # If editing an existing instance, remove buying_format field from the form
+        if self.instance:
+            self.fields.pop('buying_format')
 
     def save(self, commit=True):
         listing = super(ListingForm, self).save(commit=False)
@@ -47,12 +52,14 @@ class ListingAdditionalImagesForm(FormErrorClassMixin, ModelForm):
         model = ListingAdditionalImages
         fields = ['image']
 
+
 class CustomInlineFormSet(BaseInlineFormSet):
     def clean(self):
         super().clean()
         for form in self.forms:
             if form.cleaned_data.get('image') is None:
                 self.forms.remove(form)
+
 
 ListingAdditionalImagesFormSet = forms.inlineformset_factory(
     Listing, ListingAdditionalImages, form=ListingAdditionalImagesForm, extra=4, min_num=0, formset=CustomInlineFormSet)
@@ -91,10 +98,9 @@ class PurchaseForm(ModelForm):
     def save(self, commit=True):
         purchase = super(PurchaseForm, self).save(commit=False)
         purchase.listing = self.listing
-        purchase.bid_by = self.user
+        purchase.buyer = self.user
         if commit:
             purchase.save()
-
         return purchase
 
 
@@ -112,7 +118,7 @@ class BidForm(FormErrorClassMixin, PurchaseForm):
         return cleaned_data
 
     def save(self, commit=True):
-        bid = super(BidForm, self).save(commit=False)
+        bid = super().save(commit=False)
         bid.auction = Auction.objects.get(listing=self.listing)
         if commit:
             bid.save()

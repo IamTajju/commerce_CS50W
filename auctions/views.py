@@ -77,8 +77,8 @@ def view_listing(request, title):
         # Retrieve bid form errors from the session
         error_data = request.session.pop('data', None)
 
-        purchase_manager = ListingPurchaseManager(
-            listing=listing, user=request.user, error_data=error_data)
+        purchase_manager = PurchaseFormManager(
+            listing=listing, user=request.user, error_data=error_data, post_data=None)
 
         response_context['comment_form'] = CommentForm()
 
@@ -95,16 +95,14 @@ def view_listing(request, title):
 def make_purchase(request, title):
     if request.method == "POST":
         listing = Listing.objects.get(title=title)
-        bid = Bid.objects.filter(listing=listing, buyer=request.user).first()
-        if bid:
-            form = BidForm(request.POST, listing=listing,
-                           user=request.user, instance=bid)
-        else:
-            form = BidForm(request.POST, listing=listing, user=request.user)
+
+        purchase_manager = PurchaseFormManager(
+            listing=listing, user=request.user, error_data=None, post_data=request.POST)
+        form = purchase_manager.form
+
         if form.is_valid():
             form.save()
             messages.success(request, "Bid/Offer placed successfully")
-
         else:
             print(form.errors)
             # Store form data in session and redirect to the view_listing view
