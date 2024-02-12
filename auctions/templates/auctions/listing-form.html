@@ -56,14 +56,14 @@
                     <small class="text-muted small-custom"><i class="bi bi-info-circle"></i>
                         Select the location of your listing.</small>
                 </div>
-                {% if listing_form.buying_format %}
                 <div class="col-md-6">
+                    {% if listing_form.buying_format %}
                     <label for="{{ listing_form.buying_format.id_for_label }}">Buying Format:</label>
                     {{ listing_form.buying_format }}
                     <small class="text-muted small-custom"><i class="bi bi-info-circle"></i>
                         Choose the buying format for your listing (e.g., Buy It Now, Auction, Accept Offers).</small>
+                    {% endif %}
                 </div>
-                {% endif %}
                 <div class="col-auto">
                     <label class="form-check-label" for="{{ listing_form.free_shipping.id_for_label }}">Free
                         Shipping:</label>

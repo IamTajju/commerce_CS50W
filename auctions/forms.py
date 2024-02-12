@@ -5,6 +5,7 @@ from .models import Comment, Listing, Bid, Offer, BuyItNow, Auction, ListingAddi
 from users.models import PaymentMethod, Address
 from users.forms import FormErrorClassMixin
 from django.forms import inlineformset_factory, BaseInlineFormSet
+from .validators import PurchaseValidator
 
 
 class ListingForm(FormErrorClassMixin, ModelForm):
@@ -88,11 +89,13 @@ class PurchaseForm(ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
-        amount = cleaned_data.get('amount')
-        if amount is not None:
-            if amount <= 0:
-                self.add_error(
-                    'amount', 'Bid/Offer amount must be greater than 0.')
+        validator = PurchaseValidator(
+            listing=self.listing, user=self.user, cleaned_data=cleaned_data)
+        try:
+            validator.validate()
+        except ValueError as error:
+            self.add_error(validator.field_name, error)
+
         return cleaned_data
 
     def save(self, commit=True):
@@ -107,15 +110,6 @@ class PurchaseForm(ModelForm):
 class BidForm(FormErrorClassMixin, PurchaseForm):
     class Meta(PurchaseForm.Meta):
         model = Bid
-
-    def clean(self):
-        cleaned_data = super().clean()
-        amount = cleaned_data.get('amount')
-        if amount <= self.listing.auction.highest_bid_amount:
-            self.add_error(
-                'amount', 'Bid amount must be greater than the current price.')
-
-        return cleaned_data
 
     def save(self, commit=True):
         bid = super().save(commit=False)

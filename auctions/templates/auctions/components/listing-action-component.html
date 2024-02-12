@@ -13,6 +13,7 @@
     {{listing.get_buying_format_action_name}}
     {% endif %}
 </button>
+{% endif %}
 {% if listing in request.user.watchlist.all %}
 <a class="btn btn-outline-success disabled">
     <i class="bi bi-check"></i> Added to Watchlist
@@ -21,5 +22,4 @@
 <a class="btn btn-outline-primary" href="{% url 'add-to-watchlist' listing.title %}">
     <i class="bi bi-eyeglasses"></i> Add to Watchlist
 </a>
-{% endif %}
 {% endif %}

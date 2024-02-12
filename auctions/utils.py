@@ -20,17 +20,35 @@ def format_price(price):
 
     return price if magnitude == 0 else f"{price:.0f}{suffixes[magnitude-1]}"
 
-
 def is_anonymous_user(user):
     if isinstance(user, AnonymousUser):
         return True
-
 
 def get_field_name_display(field_name):
     # Remove underscores and capitalize each word
     formatted_data = ' '.join(word.capitalize()
                               for word in field_name.split('_'))
     return formatted_data
+
+def apply_filter(queryset, filters, max_price):
+    q_objects = Q()
+    for param, value in filters.items():
+        if param == 'price_range':
+            threshold = ((float(value[0])/100.0)*max_price)
+            queryset_beyond_price = [
+                query.pk for query in queryset if query.get_price > threshold]
+            queryset = queryset.exclude(pk__in=queryset_beyond_price)
+        elif param == 'local_pickup':
+            value = bool(strtobool(value[0]))
+            queryset = queryset.filter(local_pickup=value)
+        elif param == 'free_shipping':
+            value = bool(strtobool(value[0]))
+            queryset = queryset.filter(free_shipping=value)
+        elif param == 'buying_format':
+            q_objects &= Q(**{f"{param}__in": value})
+        else:
+            q_objects &= Q(**{f"{param}__name__in": value})
+    return queryset.filter(q_objects)
 
 
 class PurchaseFormManager:
@@ -54,7 +72,6 @@ class PurchaseFormManager:
     def has_transaction(self):
         transaction_exists = self.form_class.Meta.model.objects.filter(
             buyer=self.user, listing=self.listing).exists()
-        print(transaction_exists)
         return transaction_exists
 
     def get_previous_bid_if_outbid(self):
@@ -87,26 +104,6 @@ class PurchaseFormManager:
         # If there's no appropriate form class found, return None
         return None
 
-
-def apply_filter(queryset, filters, max_price):
-    q_objects = Q()
-    for param, value in filters.items():
-        if param == 'price_range':
-            threshold = ((float(value[0])/100.0)*max_price)
-            queryset_beyond_price = [
-                query.pk for query in queryset if query.get_price > threshold]
-            queryset = queryset.exclude(pk__in=queryset_beyond_price)
-        elif param == 'local_pickup':
-            value = bool(strtobool(value[0]))
-            queryset = queryset.filter(local_pickup=value)
-        elif param == 'free_shipping':
-            value = bool(strtobool(value[0]))
-            queryset = queryset.filter(free_shipping=value)
-        elif param == 'buying_format':
-            q_objects &= Q(**{f"{param}__in": value})
-        else:
-            q_objects &= Q(**{f"{param}__name__in": value})
-    return queryset.filter(q_objects)
 
 
 class Paginator:

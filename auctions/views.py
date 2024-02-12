@@ -79,7 +79,6 @@ def view_listing(request, title):
 
         purchase_manager = PurchaseFormManager(
             listing=listing, user=request.user, error_data=error_data, post_data=None)
-
         response_context['comment_form'] = CommentForm()
 
         # Open modal bc redirected from payment/shipping form
@@ -172,7 +171,7 @@ def edit_listing(request, title):
     if request.method == 'POST':
         listing_form = ListingForm(
             request.POST, request.FILES, user=request.user, instance=listing)
-        print(request.POST)
+
         images_formset = formset(
             request.POST, request.FILES, instance=listing)
 
