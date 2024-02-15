@@ -13,9 +13,12 @@ class PurchaseValidator():
         self.validate_user()
 
     def validate_amount(self):
+        if self.listing.buying_format == Listing.BuyingFormat.BUT_IT_NOW:
+            return True
+
         amount = self.cleaned_data.get('amount')
         self.field_name = 'amount'
-        if amount is None or amount <= 0:
+        if amount <= 0:
             raise ValueError("Bid/Offer amount must be greater than 0.")
 
         if self.listing.buying_format == Listing.BuyingFormat.AUCTION and amount <= self.listing.auction.highest_bid_amount:

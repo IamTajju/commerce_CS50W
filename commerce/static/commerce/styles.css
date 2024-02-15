@@ -118,6 +118,16 @@ th {
     border-color: var(--custom-success);
 }
 
+.badge-bg-primary {
+    background-color: var(--custom-primary);
+    border-color: var(--custom-primary);
+}
+
+.badge-bg-secondary {
+    background-color: var(--custom-secondary);
+    border-color: var(--custom-secondary);
+}
+
 /* Override Bootstrap's primary button color */
 .btn-primary {
     background-color: var(--custom-primary);

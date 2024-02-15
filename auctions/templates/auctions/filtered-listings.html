@@ -59,11 +59,7 @@
     <div class="row gx-3">
         {% if not paginator.has_listings %}
         <div class="col-auto my-2 px-5">
-            <p class="lead">We're sorry, but we couldn't find any listings that match your specific
-                criteria. It's possible that there are currently no items available that meet your search
-                parameters. Consider broadening your search or adjusting the filters to discover more
-                listings. If you have any specific requirements or if you need assistance, feel free to
-                reach out to our support team. Thank you for using our platform!</p>
+            {% include 'auctions/components/empty-listing-query-component.html' %}
         </div>
         {% endif %}
         {% for listing in paginator.get_listings %}

@@ -19,19 +19,19 @@
         <tr class="lead fs-6 align-middle">
             <td>{{forloop.counter}}</td>
             <td><img class="rounded" src="{{ bid.listing.hero_image.url }}" width="80px"></td>
-            <td><a href="{% url 'view-listing' bid.listing.title%}">{{ bid.listing }}</a></td>
+            <td><a href="{% url 'view-listing' bid.listing.id%}">{{ bid.listing }}</a></td>
             <td>৳ {{ bid.listing.base_price }}</td>
             <td>৳ {{ bid.amount }}</td>
             <td class="me-5">
                 <span
-                    class="badge {% if bid.amount >= bid.listing.get_current_price %}badge-bg-success{% else %}badge-bg-danger{% endif %} fs-6">৳
+                    class="badge {% if bid.amount >= bid.listing.get_current_price %}6{% else %}badge-bg-danger{% endif %} fs-6">৳
                     {{ bid.listing.get_price}}</span>
             </td>
             <td class="me-5">
                 <div class="d-flex ">
                     <a class="btn {% if bid.amount >= bid.listing.get_current_price %}btn-dark disabled{%else%}btn-primary{% endif %} btn-sm small-custom mx-1"
-                        href="{% url 'view-listing-with-bid-form' bid.listing.title %}"><i class="bi bi-receipt-cutoff"
-                            href="{% url 'view-listing-with-bid-form' bid.listing.title %}"></i>
+                        href="{% url 'view-listing-with-bid-form' bid.listing.id %}"><i class="bi bi-receipt-cutoff"
+                            href="{% url 'view-listing-with-bid-form' bid.listing.id %}"></i>
                         Outbid</a>
                 </div>
             </td>

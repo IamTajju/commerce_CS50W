@@ -1,7 +1,7 @@
 {% extends "users/profile-layout.html" %}
 
 {% block child%}
-<h4 class="display-6">Profile Details </h4>
+<h2>Profile Details </h2>
 <div class="card py-4 px-xl-0 px-3 list-bg shadow-sm">
     <div class="row align-items-center justify-content-center">
         <div class="col-auto my-xl-0 my-2">
@@ -52,7 +52,8 @@
         {% endfor %}
     </div>
     <div class="text-end">
-        <button type="button" class="btn btn-primary mt-2" onClick="confirmProfileChange()" id="email-form-button">Update
+        <button type="button" class="btn btn-primary mt-2" onClick="confirmProfileChange()"
+            id="email-form-button">Update
             Profile</button>
         <a class="btn btn-danger loader-on-click mt-2" href="{% url 'forgot-password' %}">Change
             Password

@@ -185,12 +185,12 @@ def payment_method_form_view(request, redirect=None):
     card_payment_form = CardPaymentForm()
     bkash_payment_form = BkashPaymentForm()
     if redirect:
-        request.session['listing_title'] = redirect
+        request.session['listing_id'] = redirect
 
     if request.method == 'POST':
         payment_method_form = PaymentMethodForm(request.POST)
 
-        redirect = request.session.pop('listing_title', None)
+        redirect = request.session.pop('listing_id', None)
 
         if payment_method_form.is_valid():
             payment_option = payment_method_form.cleaned_data['payment_option']
@@ -248,7 +248,7 @@ def payment_method_form_view(request, redirect=None):
 def shipping_address_form_view(request, redirect=None):
     form = AddressForm
     if redirect:
-        request.session['listing_title'] = redirect
+        request.session['listing_id'] = redirect
 
     if request.method == 'POST':
         form = AddressForm(request.POST)
@@ -259,7 +259,7 @@ def shipping_address_form_view(request, redirect=None):
             messages.success(
                 request, 'Shipping Address was added successfully.')
 
-            redirect = request.session.pop('listing_title', None)
+            redirect = request.session.pop('listing_id', None)
             if redirect:
                 return HttpResponseRedirect(reverse('view-listing-with-open-modal', args=[redirect]))
             else:

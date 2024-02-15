@@ -1,0 +1,95 @@
+{% extends "users/profile-layout.html" %}
+{% block child%}
+<section class="container-fluid px-5 mt-md-5 mt-3 card">
+    <div class="row align-items-center justify-content-center py-5">
+        <div class="col-lg-3 col-12">
+            <img src="{{listing.hero_image.url }}" class="listing-hero-image card rounded listing-images">
+            <div class="row justify-content-start mt-3">
+                {% for image in additional_listing_images %}
+                <div class="col-md-3 col-4">
+                    <img src="{{image.image.url }}"
+                        class="additional-listing-images listing-images card rounded img-thumbnail">
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        <div class="col-lg-8 col-12 px-lg-5 px-0 my-lg-0 my-5 justify-content-center">
+            <div class="d-block">
+                <h1 class="h3">{{listing.title}}</h1>
+                <div class="d-block">
+                    <p class="float-start text-muted lead">{{listing.condition}}</p>
+                </div>
+                <br>
+                <br>
+            </div>
+            <div class="d-block">
+                <div class="d-flex flex-row align-items-center">
+                    <strong class="lead fs-3">Price: </strong> <span class="lead fs-3">৳
+                        {{listing.get_price}}
+                </div>
+            </div>
+            <hr>
+        </div>
+    </div>
+</section>
+<h4 class="header-4 user-pages-header mt-4">Offers for Listing</h4>
+<table class="table table-hover shadow-sm border-top" id="ongoing-offers-table">
+    <thead class="align-top table-header">
+        <tr>
+            <th scope="col">Sl No</th>
+            <th scope="col">Buyer Username</th>
+            <th scope="col">Buyer Address</th>
+            <th scope="col">Offer Amount</th>
+            <th scope="col">Accept Offer</th>
+            <th scope="col">Make a Counter Offer</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for offer, counter_offer_form in offers_forms %}
+        <tr class="lead fs-6 align-middle">
+            <td>{{forloop.counter}}</td>
+            <td><strong>{{offer.buyer}}</strong></td>
+            <td>{{offer.shipping_address}}</td>
+            <td>৳ {{offer.amount}}</td>
+            {% if counter_offer_form %}
+            <td>
+                <div class="d-flex">
+                    <a class="btn btn-success btn-sm small-custom mx-1 counter-offer-btn"
+                        onClick="confirmOffer('{% url 'accept-offer' offer.id %}')"><i class="bi bi-check-lg"></i></a>
+                    <a class="btn btn-danger btn-sm small-custom mx-1 counter-offer-btn"
+                        onClick="rejectOffer('{% url 'reject-offer' offer.id %}')"><i class="bi bi-x-lg"></i></a>
+                </div>
+            </td>
+            <td>
+                <form action="{% url 'make-counter-offer' offer.id %}" class="row g-3 align-items-center" method="POST"
+                    id="counter-offer-form">
+                    {% csrf_token %}
+                    <div class="col-lg-6 col-auto">
+                        <div class="input-group input-group-sm">
+                            {{ counter_offer_form.counter_offer_amount }}
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-auto">
+                        <button type="button" class="btn btn-primary btn-sm small-custom"
+                            onclick="confirmCounterOfferFormSubmit()">Submit</button>
+                    </div>
+                </form>
+            </td>
+            {% else %}
+            <td colspan="2">
+                {% if offer.offer_status == 'R' %}
+                <span class="badge text-bg-secondary">Rejected</span>
+                {% elif offer.offer_status == 'CR' %}
+                <span class="badge text-bg-warning">Counter Rejected</span>
+                {% elif offer.offer_status == 'C'%}
+                <span class="badge badge-bg-secondary">Pending Response for
+                    ৳ {{offer.c.counter_offer_amount}}</span>
+                {% endif %}
+            </td>
+            {% endif %}
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock child %}

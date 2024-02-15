@@ -7,10 +7,11 @@ from .models import *
 from .forms import *
 from .utils import *
 from datetime import date
-from django.db.models import Max, Count
+from django.db.models import Max, Count, Sum, Subquery, OuterRef
 from django.shortcuts import get_object_or_404
 from django.conf import settings
 from django.forms import inlineformset_factory
+from .services import OfferServices, PurchaseServices
 
 
 # Homepage
@@ -51,9 +52,9 @@ def index(request):
 
 
 # Listing details page
-def view_listing(request, title):
+def view_listing(request, id):
     # Listing details
-    listing = get_object_or_404(Listing, title=title)
+    listing = get_object_or_404(Listing, id=id)
     additional_listing_images = ListingAdditionalImages.objects.filter(
         listing=listing)
 
@@ -62,7 +63,7 @@ def view_listing(request, title):
         "additional_listing_images": additional_listing_images,
         'comments': Comment.objects.filter(listing=listing),
         'similar_listings': Listing.objects.filter(
-            category=listing.category, location=listing.location).exclude(title=title)[:8],
+            category=listing.category, location=listing.location).exclude(id=id)[:8],
         'open_modal': False,
         # Set to True if the user is not anonymous
         'user_logged_in': not is_anonymous_user(request.user),
@@ -91,9 +92,9 @@ def view_listing(request, title):
 
 
 @login_required(login_url=settings.LOGIN_URL)
-def make_purchase(request, title):
+def make_purchase(request, id):
     if request.method == "POST":
-        listing = Listing.objects.get(title=title)
+        listing = Listing.objects.get(id=id)
 
         purchase_manager = PurchaseFormManager(
             listing=listing, user=request.user, error_data=None, post_data=request.POST)
@@ -107,34 +108,34 @@ def make_purchase(request, title):
             # Store form data in session and redirect to the view_listing view
             request.session['data'] = form.data
 
-    return HttpResponseRedirect(reverse('view-listing', args=[title]))
+    return HttpResponseRedirect(reverse('view-listing', args=[id]))
 
 # Place comment on Listing Details page
 
 
 @login_required(login_url=settings.LOGIN_URL)
-def comment(request, title):
+def comment(request, id):
     if request.method == "POST":
         form = CommentForm(request.POST)
 
         if form.is_valid():
             comment = form.cleaned_data
             new_comment = Comment(user=User.objects.get(username=request.user), listing=Listing.objects.get(
-                title=title), comment=comment['comment'], date=date.today())
+                id=id), comment=comment['comment'], date=date.today())
             new_comment.save()
 
-    return HttpResponseRedirect(reverse('view-listing', args=[title]))
+    return HttpResponseRedirect(reverse('view-listing', args=[id]))
 
 # Adds Listing to Watchlist and returns to Listing Details Page
 
 
 @login_required(login_url=settings.LOGIN_URL)
-def add_to_watch_list(request, title):
+def add_to_watch_list(request, id):
     user = User.objects.get(username=request.user)
-    item = Listing.objects.get(title=title)
+    item = Listing.objects.get(id=id)
     user.watchlist.add(item)
     user.save()
-    return HttpResponseRedirect(reverse('view-listing', args=[title]))
+    return HttpResponseRedirect(reverse('view-listing', args=[id]))
 
 
 # Form Page to Create New Listing Item
@@ -151,7 +152,7 @@ def create_listing(request):
             images_formset.instance = listing
             images_formset.save()
             messages.success(request, "Listing Created Successfuly")
-            return HttpResponseRedirect(reverse('view-listing', args=[listing.title]))
+            return HttpResponseRedirect(reverse('view-listing', args=[listing.id]))
             # Redirect to success page or another view
     else:
         listing_form = ListingForm(user=request.user)
@@ -162,8 +163,8 @@ def create_listing(request):
 
 # Form Page to Edit Listing Item
 @login_required(login_url=settings.LOGIN_URL)
-def edit_listing(request, title):
-    listing = get_object_or_404(Listing, title=title, listed_by=request.user)
+def edit_listing(request, id):
+    listing = get_object_or_404(Listing, id=id, listed_by=request.user)
     header = f'Edit Listing Item'
     formset = inlineformset_factory(
         Listing, ListingAdditionalImages, form=ListingAdditionalImagesForm, extra=0, min_num=0, formset=CustomInlineFormSet)
@@ -180,7 +181,7 @@ def edit_listing(request, title):
             images_formset.instance = listing
             images_formset.save()
             messages.success(request, "Listing Edited Successfuly")
-            return HttpResponseRedirect(reverse('view-listing', args=[listing.title]))
+            return HttpResponseRedirect(reverse('view-listing', args=[listing.id]))
 
         else:
             print(images_formset.error_class)
@@ -189,9 +190,104 @@ def edit_listing(request, title):
         listing_form = ListingForm(instance=listing, user=request.user)
         images_formset = formset(instance=listing)
 
-    return render(request, 'auctions/listing-form.html', {'listing_form': listing_form, 'images_formset': images_formset, 'header': header, 'action': 'edit', 'title': title})
+    return render(request, 'auctions/listing-form.html', {'listing_form': listing_form, 'images_formset': images_formset, 'header': header, 'action': 'edit', 'id': id})
 
-# Summary page of all the user's bids
+
+@login_required(login_url=settings.LOGIN_URL)
+def view_seller_dashboard(request):
+    listings = Listing.objects.filter(listed_by=request.user, purchased=False, active=True).annotate(
+        watchlist_count=Count('user')
+    )
+
+    if not listings:
+        return render(request, 'auctions/seller-dashboard.html', {"empty_message": "No Active Listings for Sale.", "sell": True})
+
+    summary_stats = listings.aggregate(Sum('base_price'), Count('id'))
+    total_listings = summary_stats['id__count']
+    expected_revenue = format_price(summary_stats['base_price__sum'])
+    return render(request, 'auctions/seller-dashboard.html', {'total_listings': total_listings, 'expected_revenue': expected_revenue, 'listings': listings})
+
+
+@login_required(login_url=settings.LOGIN_URL)
+def close_listing(request, listing_id):
+    listing = get_object_or_404(Listing, id=listing_id, listed_by=request.user)
+    try:
+        PurchaseServices.process_any_listing_close(listing)
+        if listing.purchased:
+            messages.success("Congratulations your Listing has been sold!")
+            return HttpResponse("redirect to purchase history")
+        else:
+            messages.info("Listing Closed Successfuly")
+            return HttpResponseRedirect(reverse("seller-dashboard"))
+    except Exception as e:
+        logging.critical(e)
+        messages.error(
+            request, "There was an issue with the process. Please contact the service admistrator")
+        return HttpResponseRedirect(reverse("seller-dashboard"))
+
+
+@login_required(login_url=settings.LOGIN_URL)
+def sellers_offers_list(request, listing_id):
+    listing = get_object_or_404(
+        Listing, id=listing_id, listed_by=request.user, purchased=False, active=True)
+    offers = Offer.objects.filter(listing=listing)
+    counter_offer_forms = [CounterOfferForm(
+        offer=offer) if offer.offer_status == Offer.OfferStatus.PENDING else None for offer in offers]
+
+    offers_forms = zip(offers, counter_offer_forms)
+    return render(request, "auctions/seller-offers-received.html", {'offers_forms': offers_forms, 'listing': listing})
+
+
+@login_required(login_url=settings.LOGIN_URL)
+def accept_offer(request, offer_id):
+    offer = get_object_or_404(
+        Offer, id=offer_id, listing__listed_by=request.user)
+
+    try:
+        OfferServices().process_offer_listing_sale(offer=offer)
+        messages.success(
+            request, f"Offer Accepted, Congratulations your Listing has been sold to {offer.buyer.username}")
+        return HttpResponse("Redirect to purchase history")
+
+    except:
+        messages.error(
+            request, "There was an issue with the purchase. Please contact the service admistrator")
+        return HttpResponseRedirect(reverse("seller-offers-received", args=[offer.listing.id]))
+
+
+@login_required(login_url=settings.LOGIN_URL)
+def reject_offer(request, offer_id):
+    offer = get_object_or_404(
+        Offer, id=offer_id, listing__listed_by=request.user)
+
+    offer_service_manager = OfferServices()
+    try:
+        offer_service_manager.process_offer_reject(offer=offer)
+        messages.info(request, f"Offer Rejected.")
+        return HttpResponseRedirect(reverse("seller-offers-received", args=[offer.listing.id]))
+
+    except:
+        messages.error(
+            request, "There was an issue with transaction. Please contact the service admistrator")
+        return HttpResponseRedirect(reverse("seller-offers-received", args=[offer.listing.id]))
+
+
+@login_required(login_url=settings.LOGIN_URL)
+def make_counter_offer(request, offer_id):
+    if request.method == 'POST':
+        offer = get_object_or_404(
+            Offer, id=offer_id, listing__listed_by=request.user)
+        counter_offer_form = CounterOfferForm(request.POST, offer=offer)
+
+        if counter_offer_form.is_valid():
+            counter_offer_form.save()
+            messages.success(
+                request, "Counter Offer sent to buyer successfully")
+        else:
+            messages.error(
+                request, "Couldn't be counter please try again after some time.")
+
+        return HttpResponseRedirect(reverse("seller-offers-received", args=[offer.listing.id]))
 
 
 @login_required(login_url=settings.LOGIN_URL)
@@ -200,6 +296,9 @@ def counter_offers(request):
 
     counter_offers = bids.filter(
         listing__active=True, listing__buying_format=Listing.BuyingFormat.ACCEPT_OFFERS)
+
+    if request.method == 'POST':
+        pass
 
     return render(request, "auctions/counter-offers.html", {
         "counter_offers": counter_offers,
@@ -232,7 +331,7 @@ def search(request):
         else:
             return render(request, "auctions/searchResult.html", {
                 "listings": listings,
-                "categories": getAllCategories()
+                "categories": Category.objects.all()
             })
 
     # If there's an issue, redirect to the Home page

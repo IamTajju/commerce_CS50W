@@ -1,11 +1,12 @@
 from django import forms
 from django.forms import ModelForm, widgets
 from django.forms.forms import Form
-from .models import Comment, Listing, Bid, Offer, BuyItNow, Auction, ListingAdditionalImages
+from .models import Comment, Listing, Bid, Offer, BuyItNow, Auction, ListingAdditionalImages, CounterOffer
 from users.models import PaymentMethod, Address
 from users.forms import FormErrorClassMixin
 from django.forms import inlineformset_factory, BaseInlineFormSet
 from .validators import PurchaseValidator
+from django.db import transaction
 
 
 class ListingForm(FormErrorClassMixin, ModelForm):
@@ -31,10 +32,12 @@ class ListingForm(FormErrorClassMixin, ModelForm):
 
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)
-        self.instance = kwargs.get('instance', None)
+        self.instance = kwargs.get('instance')
+
         super(ListingForm, self).__init__(*args, **kwargs)
+
         # If editing an existing instance, remove buying_format field from the form
-        if self.instance:
+        if self.instance.id:
             self.fields.pop('buying_format')
 
     def save(self, commit=True):
@@ -125,11 +128,6 @@ class OfferForm(FormErrorClassMixin, PurchaseForm):
 
     def clean(self):
         cleaned_data = super().clean()
-        amount = cleaned_data.get('amount')
-        if amount <= self.listing.base_price:
-            self.add_error(
-                'amount', 'You Offer must be greater than the starting price.')
-
         return cleaned_data
 
 
@@ -155,3 +153,25 @@ class CommentForm(FormErrorClassMixin, ModelForm):
         widgets = {
             'comment': forms.TextInput(attrs={'class': 'form-control'})
         }
+
+
+class CounterOfferForm(ModelForm):
+    class Meta:
+        model = CounterOffer
+        fields = ['counter_offer_amount']
+
+        widgets = {
+            'counter_offer_amount': forms.NumberInput(attrs={'class': 'form-control rounded-start', 'aria-label': 'amount', 'placeholder': '৳'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        self.offer = kwargs.pop('offer', None)
+        super(CounterOfferForm, self).__init__(*args, **kwargs)
+
+    
+    def save(self, commit=True):
+        counter_offer = super(CounterOfferForm, self).save(commit=False)
+        counter_offer.offer = self.offer
+        if commit:
+            counter_offer.save()
+        return counter_offer

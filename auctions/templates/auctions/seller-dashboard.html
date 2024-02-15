@@ -1,0 +1,92 @@
+{% extends "users/profile-layout.html" %}
+{% load static %}
+{% block child%}
+{% if listings %}
+<h2>Selling Dashboard </h2>
+<div class="card py-4 px-xl-0 px-1 list-bg shadow-sm">
+    <div class="row align-items-center justify-content-center text-center lead py-2">
+        <div class="col-lg-6 col-12">
+            <p style="color:#4e4e4e; margin-bottom: 0;"><i class="bi bi-cash"></i>
+                Exp. Revenue: ৳ {{expected_revenue}}</p>
+        </div>
+        <div class="col-lg-6 col-12">
+            <p style="color:#4e4e4e; margin-bottom: 0;"><i class="bi bi-card-list"></i> Active Listings:
+                {{total_listings}}</p>
+        </div>
+    </div>
+</div>
+<h4 class="header-4 user-pages-header mt-5">Active Listings</h4>
+<table class="table table-hover shadow-sm border-top" id="active-listings-table">
+    <thead class="align-top table-header">
+        <tr>
+            <th scope="col">Sl No</th>
+            <th scope="col">Image</th>
+            <th scope="col">Title</th>
+            <th scope="col">Format</th>
+            <th scope="col">Base Price</th>
+            <th scope="col">Current Price</th>
+            <th scope="col">Watch Count</th>
+            <th scope="col">Edit</th>
+            <th scope="col">Close</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for listing in listings%}
+        <tr class="lead fs-6 align-middle">
+            <td>{{forloop.counter}}</td>
+            <td>
+                <a href="{% url 'view-listing' listing.id %}">
+                    <img class="rounded" src="{{ listing.hero_image.url }}" width="100px">
+                </a>
+            </td>
+            <td>
+                <a href="{% url 'view-listing' listing.id %}" class="d-inline-block text-truncate"
+                    style="max-width: 100px;">{{ listing.title }}
+                </a>
+            </td>
+            <td><span
+                    class="badge {% if listing.buying_format == 'A' %} badge-bg-secondary {% elif listing.buying_format == 'AO' %} badge-bg-primary {% else %} badge-bg-success {% endif %}">
+                    {{listing.get_buying_format_display }}
+                </span>
+            </td>
+            <td>৳ {{ listing.base_price }}</td>
+            <td>
+                {% if listing.buying_format == 'AO' %}
+                {% if listing.offer_set.count == 0 %}
+                <a class="btn btn-secondary btn-sm small-custom disabled">
+                    No offers yet.
+                </a>
+                {% else %}
+                <a class="btn btn-secondary btn-sm small-custom" href="{% url 'seller-offers-received' listing.id %}">
+                    View Offers
+                </a>
+                {% endif %}
+                {% elif listing.buying_format == 'A' %}
+                <strong>৳ {{listing.get_price}} </strong>
+                {% else %}
+                <span class="badge badge-bd-danger">Sale Pending</span>
+                {% endif %}
+            </td>
+            <td>
+                {{listing.watchlist_count}}
+            </td>
+            <td>
+                <a class="btn btn-primary btn-sm small-custom" href="{% url 'edit-listing' listing.id%}">
+                    Edit
+                </a>
+            </td>
+            <td>
+                <a class="btn btn-danger btn-sm small-custom"
+                    onClick="confirmListingClose('{% url 'close-listing' listing.id %}')">
+                    Close
+                </a>
+            </td>
+
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+{% include 'auctions/components/empty-dashboard-component.html' %}
+{% endif %}
+{% endblock child %}

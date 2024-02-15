@@ -19,7 +19,7 @@
         <tr class="lead fs-6 align-middle">
             <td>{{forloop.counter}}</td>
             <td><img src="{{ bid.listing.hero_image.url }}" width="80px"></td>
-            <td><a href="{% url 'view-listing' bid.listing.title%}" style="color: #2E2E2E">{{ bid.listing }}</a></td>
+            <td><a href="{% url 'view-listing' bid.listing.id%}" style="color: #2E2E2E">{{ bid.listing }}</a></td>
             <td>৳ {{ bid.listing.base_price }}</td>
             <td>৳ {{ bid.amount }}</td>
             {% if forloop.counter == 1 %}

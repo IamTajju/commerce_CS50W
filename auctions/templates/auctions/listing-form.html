@@ -6,7 +6,7 @@
     {% if action == 'create' %}
     <form action="{% url 'create-listing' %}" method="post" enctype="multipart/form-data" class="form-group">
         {% else %}
-        <form action="{% url 'edit-listing' title %}" method="post" enctype="multipart/form-data" class="form-group">
+        <form action="{% url 'edit-listing' id %}" method="post" enctype="multipart/form-data" class="form-group">
             {% endif %}
             {% csrf_token %}
             <div class="row gy-4">

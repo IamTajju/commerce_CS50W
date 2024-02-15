@@ -276,7 +276,7 @@ function rejectCounterOffer() {
         title: 'Reject Offer?',
         icon: 'warning',
         showCancelButton: true,
-        confirmButtonColor: customSuccessColor,
+        confirmButtonColor: customDangerColor,
         cancelButtonColor: customDarkColor,
         confirmButtonText: 'Yes, Reject offer.',
         cancelButtonText: 'Go Back'
@@ -287,6 +287,101 @@ function rejectCounterOffer() {
                     <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
                     Loading...
                 `;
+        }
+    });
+}
+
+
+function confirmOffer(link) {
+    event.preventDefault();
+    Swal.fire({
+        title: 'Accept Offer?',
+        text: 'By accepting this offer, all other offers and counter offers will be automatically rejected, and the purchase will be confirmed irreversibly.',
+        icon: 'success',
+        showCancelButton: true,
+        confirmButtonColor: customSuccessColor,
+        cancelButtonColor: customDarkColor,
+        confirmButtonText: 'Yes, accept offer!',
+        cancelButtonText: 'Go Back'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Show loading spinner
+            document.getElementById('ongoing-offers-table').innerHTML = `
+                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                    Loading...
+                `;
+
+            // Redirect to the href link
+            window.location.href = link;
+        }
+    });
+}
+
+function rejectOffer(link) {
+    Swal.fire({
+        title: 'Reject Offer?',
+        text: 'Are you sure you want to reject this offer? This cannot be undone.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: customDangerColor,
+        cancelButtonColor: customDarkColor,
+        confirmButtonText: 'Yes, reject offer.',
+        cancelButtonText: 'Go Back'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Show loading spinner
+            document.getElementById('ongoing-offers-table').innerHTML = `
+                        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                        Loading...
+                    `;
+            // Redirect to the href link
+            window.location.href = link;
+        }
+    });
+}
+
+function confirmListingClose(link) {
+    Swal.fire({
+        title: 'Close Offer?',
+        text: 'Are you sure you want to close your listing. If your listing had no bids/offers your listing will remain unsold, This process cannot be undone.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: customDangerColor,
+        cancelButtonColor: customDarkColor,
+        confirmButtonText: 'Yes, Close Listing!',
+        cancelButtonText: 'Go Back'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Show loading spinner
+            document.getElementById('active-listings-table').innerHTML = `
+                        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                        Loading...
+                    `;
+            // Redirect to the href link
+            window.location.href = link;
+        }
+    });
+}
+
+function confirmCounterOfferFormSubmit() {
+    Swal.fire({
+        title: 'Send Counter Offer?',
+        text: 'Sending a counter offer will nullify this offer if rejected by the buyer.',
+        icon: 'info',
+        showCancelButton: true,
+        confirmButtonColor: customPrimaryColor,
+        cancelButtonColor: customDarkColor,
+        confirmButtonText: 'Send Counter Offer',
+        cancelButtonText: 'Cancel'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Show loading spinner
+            document.getElementById('ongoing-offers-table').innerHTML = `
+                        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                        Loading...
+                    `;
+            // Submit the form
+            document.getElementById('counter-offer-form').submit();
         }
     });
 }

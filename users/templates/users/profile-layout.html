@@ -20,8 +20,22 @@
                 </li>
                 <li class="list-group-item list">
                     <a class="d-flex justify-content-between align-items-center lead py-3 fs-6"
+                        href="{% url 'seller-dashboard' %}">
+                        <span><i class="bi bi-card-list"></i> Selling Dashboard </span>
+                        <span class="badge badge-bd rounded-pill">1</span>
+                    </a>
+                </li>
+                <li class="list-group-item list">
+                    <a class="d-flex justify-content-between align-items-center lead py-3 fs-6"
                         href="{% url 'ongoing-bids' %}">
-                        <span><i class="bi bi-clock-history"></i> Ongoing Bids</span>
+                        <span><i class="bi bi-bag"></i> Buying Dashboard</span>
+                        <span class="badge badge-bd rounded-pill">1</span>
+                    </a>
+                </li>
+                <li class="list-group-item list">
+                    <a class="d-flex justify-content-between align-items-center lead py-3 fs-6"
+                        href="{% url 'profile' %}">
+                        <span><i class="bi bi-person"></i> Profile Details</span>
                         <span class="badge badge-bd rounded-pill">1</span>
                     </a>
                 </li>
@@ -31,14 +45,6 @@
                         <span><i class="bi bi-envelope-open"></i> Counter Offers</span>
                         <span class="badge badge-bd rounded-pill">1</span>
                     </a>
-                </li>
-                <li class="list-group-item list d-flex justify-content-between align-items-center lead py-3 fs-6">
-                    <span><i class="bi bi-card-list"></i> Listings </span>
-                    <span class="badge badge-bd rounded-pill">1</span>
-                </li>
-                <li class="list-group-item list d-flex justify-content-between align-items-center lead py-3 fs-6">
-                    <span><i class="bi bi-bag"></i> Purchase History</span>
-                    <span class="badge badge-bd rounded-pill">1</span>
                 </li>
                 <li class="list-group-item list d-flex justify-content-between align-items-center lead py-3 fs-6">
                     <span><i class="bi bi-clipboard-data"></i> Listing History</span>

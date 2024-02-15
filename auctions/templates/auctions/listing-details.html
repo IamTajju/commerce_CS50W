@@ -74,7 +74,7 @@
     <hr>
     {% if user_logged_in%}
     <h5 class="lead mt-5">Share your thoughts </h5>
-    <form action="{% url 'comment' listing.title %}" method="post" class="row g-3 align-items-start">
+    <form action="{% url 'comment' listing.id %}" method="post" class="row g-3 align-items-start">
         <div class="col-md-10 col-12">
             {% csrf_token %}
             {{ comment_form.comment }}
@@ -119,7 +119,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body justify-content-start">
-                <form action="{% url 'make-purchase' listing.title %}" method="post" class="align-items-center my-3">
+                <form action="{% url 'make-purchase' listing.id %}" method="post" class="align-items-center my-3">
                     <h5 class="lead">{{listing.get_buying_format_action_name}}</h5>
                     {% csrf_token %}
                     {% for field in purchase_manager.form %}
@@ -141,11 +141,11 @@
             </div>
             <div class="modal-footer">
                 <a class="text-muted text-decoration-none"
-                    href="{% url 'add_payment_method_redirect' listing.title %}"><i class="bi bi-plus"></i> <small>Add
+                    href="{% url 'add_payment_method_redirect' listing.id %}"><i class="bi bi-plus"></i> <small>Add
                         Payment
                         Method</small></a>
                 <a class="text-muted text-decoration-none"
-                    href="{% url 'add_shipping_address_redirect' listing.title %}"><i class="bi bi-plus"></i> <small>Add
+                    href="{% url 'add_shipping_address_redirect' listing.id %}"><i class="bi bi-plus"></i> <small>Add
                         Shipping
                         Address</small></a>
             </div>

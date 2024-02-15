@@ -112,13 +112,14 @@ class Auction(models.Model):
     class AuctionStatus(models.TextChoices):
         SOLD = 'S', _('Sold')
         ONGOING = 'O', _('Ongoing')
+        CLOSED_WITHOUT_SALE = 'CWS', _('Closed Without Sale')
 
     listing = models.OneToOneField(
         Listing, on_delete=models.CASCADE, primary_key=True)
     end_date = models.DateTimeField()
     highest_bid_amount = models.PositiveIntegerField()
     auction_status = models.CharField(
-        max_length=2, choices=AuctionStatus.choices, default=AuctionStatus.ONGOING)
+        max_length=3, choices=AuctionStatus.choices, default=AuctionStatus.ONGOING)
 
 
 class PurchaseTransaction(models.Model):
@@ -153,24 +154,26 @@ class Bid(PurchaseTransaction):
 
 class Offer(PurchaseTransaction):
     class OfferStatus(models.TextChoices):
-        SELLER_ACCEPTED = 'A', _('Accepted')
-        SELLER_REJECTED = 'R', _('Rejected')
+        ACCEPTED = 'A', _('Accepted')
+        REJECTED = 'R', _('Rejected')
         COUNTER = 'C', _('Counter')
+        COUNTER_ACCEPTED = 'CA', _('Counter Accepted')
+        COUNTER_REJECTED = 'CR', _('Counter Rejected')
         PENDING = 'P', _('Pending')
 
     offer_status = models.CharField(
         max_length=2, choices=OfferStatus.choices, default=OfferStatus.PENDING)
-    
 
 
 class CounterOffer(models.Model):
     class CounterOfferStatus(models.TextChoices):
-        BUYER_ACCEPTED = 'A', _('Accepted')
-        BUYER_REJECTED = 'R', _('Rejected')
+        ACCEPTED = 'A', _('Accepted')
+        REJECTED = 'R', _('Rejected')
         PENDING = 'P', _('Pending')
 
-    offer = models.OneToOneField(Offer, on_delete=models.CASCADE)
-    counter_offer = models.PositiveIntegerField()
+    offer = models.OneToOneField(
+        Offer, on_delete=models.CASCADE, related_name='c')
+    counter_offer_amount = models.PositiveIntegerField()
     timestamp = models.DateTimeField(auto_now_add=True)
     counter_offer_status = models.CharField(
         max_length=2, choices=CounterOfferStatus.choices, default=CounterOfferStatus.PENDING)

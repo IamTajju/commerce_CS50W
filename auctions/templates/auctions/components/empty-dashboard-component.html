@@ -1,0 +1,20 @@
+{% load static %}
+<center>
+    <div class="mt-xl-5">
+        <img class="img-fluid" src="{% static 'auctions/images/box.png'%}">
+        <h3 class="mt-5">{{empty_message}}</h3>
+        <div class="d-flex justify-content-center flex-row align-items-center mt-3">
+            {% if sell %}
+            <p class="lead me-2 fs-6 mb-0">Post a product for sale:</p>
+            <a class="btn btn-secondary btn-sm small-custom" href="{% url 'create-listing' %}"><i
+                    class="bi bi-bag-plus-fill"></i>
+                Create Listing</a>
+            {% else %}
+            <p class="lead me-2 fs-6 mb-0">Browse our Listings:</p>
+            <a class="btn btn-secondary btn-sm small-custom" href="{% url 'index' %}"><i
+                    class="bi bi-bag-plus-fill"></i>
+                Browse</a>
+            {% endif %}
+        </div>
+    </div>
+</center>
