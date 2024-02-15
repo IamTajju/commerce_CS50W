@@ -1,6 +1,7 @@
 {% extends "users/profile-layout.html" %}
 
 {% block child%}
+{% if payment_methods %}
 <h2 class="header-2 user-pages-header">Registered Payment Methods</h2>
 <table class="table table-hover shadow-sm" id="shipping-address-table">
     <thead class="align-top table-header">
@@ -22,6 +23,19 @@
 </table>
 <a class="btn btn-primary float-end mt-5" href="{% url 'add_payment_method' %}"><i class="bi bi-plus"></i> Add New
     Payment Method</a>
+{% else %}
+{% load static %}
+<center>
+    <div class="mt-xl-5">
+        <img class="img-fluid" src="{% static 'auctions/images/search.png'%}" style="max-height: 250px;">
+        <p class="lead fs-6 mt-4">No Payment Methods Registered</p>
+        <a class="btn btn-secondary mt-1" href="{% url 'add_payment_method' %}"><i
+                class="bi bi-credit-card-2-front"></i>
+            Register
+            Payment Method</a>
+    </div>
+</center>
+{% endif %}
 <script>
     function confirmPaymentMethodDelete(methodId) {
         Swal.fire({

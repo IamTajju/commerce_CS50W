@@ -1,6 +1,6 @@
 {% extends "users/profile-layout.html" %}
-
 {% block child%}
+{% if addresses %}
 <h2 class="header-2 user-pages-header">Registered Shipping Addresses</h2>
 <table class="table table-hover shadow-sm" id="shipping-address-table">
     <thead class="align-top table-header">
@@ -22,6 +22,17 @@
 </table>
 <a class="btn btn-primary float-end mt-5" href="{% url 'add_shipping_address' %}"><i class="bi bi-plus"></i> Add New
     Address</a>
+{% else %}
+{% load static %}
+<center>
+    <div class="mt-xl-5">
+        <img class="img-fluid" src="{% static 'auctions/images/search.png'%}" style="max-height: 250px;">
+        <p class="lead fs-6 mt-4">No Shipping Address Registered</p>
+        <a class="btn btn-primary mt-1" href="{% url 'add_shipping_address' %}"><i class="bi bi-map-fill"></i>
+            Register Shipping Address</a>
+    </div>
+</center>
+{% endif %}
 
 <script>
 

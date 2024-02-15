@@ -83,7 +83,7 @@ class OfferServices(PurchaseServices):
                 raise Exception(
                     "Incorrect use of Offer Service's process listing sale method.")
 
-            cls.find_and_close_all_losing_offers(winning_offer=offer)
+            cls.close_all_losing_offers(winning_offer=offer)
 
             # Update listing status
             cls.close_listing(listing=offer.listing, is_purchased=True)

@@ -7,7 +7,8 @@ from .models import *
 from .forms import *
 from .utils import *
 from datetime import date
-from django.db.models import Max, Count, Sum, Subquery, OuterRef
+from django.db.models import Count, Sum
+from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import get_object_or_404
 from django.conf import settings
 from django.forms import inlineformset_factory
@@ -228,14 +229,19 @@ def close_listing(request, listing_id):
 
 @login_required(login_url=settings.LOGIN_URL)
 def sellers_offers_list(request, listing_id):
-    listing = get_object_or_404(
-        Listing, id=listing_id, listed_by=request.user, purchased=False, active=True)
-    offers = Offer.objects.filter(listing=listing)
-    counter_offer_forms = [CounterOfferForm(
-        offer=offer) if offer.offer_status == Offer.OfferStatus.PENDING else None for offer in offers]
+    try:
+        listing = Listing.objects.get(
+            id=listing_id, listed_by=request.user, purchased=False, active=True)
 
-    offers_forms = zip(offers, counter_offer_forms)
-    return render(request, "auctions/seller-offers-received.html", {'offers_forms': offers_forms, 'listing': listing})
+        offers = Offer.objects.filter(listing=listing)
+        counter_offer_forms = [CounterOfferForm(
+            offer=offer) if offer.offer_status == Offer.OfferStatus.PENDING else None for offer in offers]
+
+        offers_forms = zip(offers, counter_offer_forms)
+        return render(request, "auctions/seller-offers-received.html", {'offers_forms': offers_forms, 'listing': listing})
+
+    except ObjectDoesNotExist:
+        return HttpResponseRedirect(reverse("seller-dashboard"))
 
 
 @login_required(login_url=settings.LOGIN_URL)
@@ -249,7 +255,8 @@ def accept_offer(request, offer_id):
             request, f"Offer Accepted, Congratulations your Listing has been sold to {offer.buyer.username}")
         return HttpResponse("Redirect to purchase history")
 
-    except:
+    except Exception as e:
+        print(e)
         messages.error(
             request, "There was an issue with the purchase. Please contact the service admistrator")
         return HttpResponseRedirect(reverse("seller-offers-received", args=[offer.listing.id]))
