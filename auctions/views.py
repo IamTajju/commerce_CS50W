@@ -15,7 +15,7 @@ from django.forms import inlineformset_factory
 from .services import OfferServices, PurchaseServices
 import logging
 from itertools import zip_longest
-
+import json
 # Homepage
 
 
@@ -26,7 +26,6 @@ def index(request):
     conditions = Condition.objects.all()
     locations = Location.objects.all()
     max_price = Listing.get_highest_price()
-
     filters = {key.replace("[]", ""): value for key, value in dict(request.GET).items(
     ) if key != "page" and key != "sort"}
     filter_labels = [(label, label.replace("_", " "))
@@ -40,7 +39,7 @@ def index(request):
     paginator = Paginator(current_page_number, listings, sort_option)
 
     if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-        return render(request, 'auctions/filtered-listings.html', {'paginator': paginator, 'filter_labels': filter_labels})
+        return render(request, 'auctions/filtered-listings.html', {'paginator': paginator, 'filter_labels': filter_labels, "listingTitles": json.dumps(format_listing_for_search())})
 
     return render(request, "auctions/index.html", {
         "paginator": paginator,
@@ -51,6 +50,7 @@ def index(request):
         'locations': locations,
         'max_price': max_price,
         'max_price_view': format_price(max_price),
+        "listingTitles": json.dumps(format_listing_for_search())
     }
     )
 
@@ -61,7 +61,6 @@ def view_listing(request, id):
     listing = get_object_or_404(Listing, id=id)
     additional_listing_images = ListingAdditionalImages.objects.filter(
         listing=listing)
-
     total_bids_offers = Bid.objects.filter(listing=listing).count(
     ) if listing.buying_format == Listing.BuyingFormat.AUCTION else Offer.objects.filter(listing=listing).count()
     response_context = {
@@ -75,7 +74,8 @@ def view_listing(request, id):
         'user_logged_in': not is_anonymous_user(request.user),
         'watchers': User.objects.filter(watchlist=listing).annotate(
             watchlist_count=Count('id')).count(),
-        'total_bids_offers': total_bids_offers
+        'total_bids_offers': total_bids_offers,
+        'listingTitle': json.dumps(format_listing_for_search())
     }
 
     # Logged In User action
@@ -162,7 +162,7 @@ def create_listing(request):
         listing_form = ListingForm(user=request.user)
         images_formset = ListingAdditionalImagesFormSet(instance=Listing())
 
-    return render(request, 'auctions/listing-form.html', {'listing_form': listing_form, 'images_formset': images_formset, 'header': header, 'action': 'create'})
+    return render(request, 'auctions/listing-form.html', {'listing_form': listing_form, 'images_formset': images_formset, 'header': header, 'action': 'create', 'listingTitles': json.dumps(format_listing_for_search())})
 
 
 # Form Page to Edit Listing Item
@@ -194,7 +194,7 @@ def edit_listing(request, id):
         listing_form = ListingForm(instance=listing, user=request.user)
         images_formset = formset(instance=listing)
 
-    return render(request, 'auctions/listing-form.html', {'listing_form': listing_form, 'images_formset': images_formset, 'header': header, 'action': 'edit', 'id': id})
+    return render(request, 'auctions/listing-form.html', {'listing_form': listing_form, 'images_formset': images_formset, 'header': header, 'action': 'edit', 'id': id, "listingTitles": json.dumps(format_listing_for_search())})
 
 
 # View all active listings on sale
@@ -205,12 +205,12 @@ def view_seller_dashboard(request):
     )
 
     if not listings:
-        return render(request, 'auctions/seller-dashboard.html', {"empty_message": "No Active Listings for Sale.", "sell": True})
+        return render(request, 'auctions/seller-dashboard.html', {"empty_message": "No Active Listings for Sale.", "sell": True, "listingTitles": json.dumps(format_listing_for_search())})
 
     summary_stats = listings.aggregate(Sum('base_price'), Count('id'))
     total_listings = summary_stats['id__count']
     expected_revenue = format_price(summary_stats['base_price__sum'])
-    return render(request, 'auctions/seller-dashboard.html', {'total_listings': total_listings, 'expected_revenue': expected_revenue, 'listings': listings})
+    return render(request, 'auctions/seller-dashboard.html', {'total_listings': total_listings, 'expected_revenue': expected_revenue, 'listings': listings, "listingTitles": json.dumps(format_listing_for_search())})
 
 
 # Close a listing
@@ -245,7 +245,7 @@ def sellers_offers_list(request, listing_id):
             offer=offer) if offer.offer_status == Offer.OfferStatus.PENDING else None for offer in offers]
 
         offers_forms = zip(offers, counter_offer_forms)
-        return render(request, "auctions/seller-offers-received.html", {'offers_forms': offers_forms, 'listing': listing})
+        return render(request, "auctions/seller-offers-received.html", {'offers_forms': offers_forms, 'listing': listing, "listingTitles": json.dumps(format_listing_for_search())})
 
     except ObjectDoesNotExist:
         return redirect("seller-dashboard")
@@ -360,6 +360,7 @@ def view_buyer_dashboard(request):
     return render(request, "auctions/buyer-dashboard.html", {
         "offers": offers,
         "bids": bids,
+        "listingTitles": json.dumps(format_listing_for_search())
     })
 
 
@@ -373,7 +374,8 @@ def view_purchase_history(request):
         buyer=request.user, listing__active=False).order_by('-timestamp')
     purchases = zip_longest(offers, bids, bins, fillvalue=None)
     return render(request, "auctions/purchase-history.html", {
-        "purchases": purchases
+        "purchases": purchases,
+        "listingTitles": json.dumps(format_listing_for_search())
     })
 
 
@@ -383,23 +385,23 @@ def view_listing_history(request):
         watchlist_count=Count('user')
     ).order_by('-timestamp')
     if not listings:
-        return render(request, 'auctions/listing-history.html', {"empty_message": "No Listing History.", "sell": True})
+        return render(request, 'auctions/listing-history.html', {"empty_message": "No Listing History.", "sell": True, "listingTitles": json.dumps(format_listing_for_search())})
 
     summary_stats = listings.filter(purchased=True).aggregate(
         Sum('base_price'), Count('id'))
     total_listings_sold = summary_stats['id__count']
     total_revenue = format_price(summary_stats['base_price__sum'])
-    return render(request, "auctions/listing-history.html", {"listings": listings, "total_sold": total_listings_sold, "total_revenue": total_revenue})
+    return render(request, "auctions/listing-history.html", {"listings": listings, "total_sold": total_listings_sold, "total_revenue": total_revenue, "listingTitles": json.dumps(format_listing_for_search())})
 
 
 @login_required(login_url=settings.LOGIN_URL)
 def view_watchlist(request):
     listings = request.user.watchlist.all().order_by('-timestamp')
 
-    return render(request, "auctions/watchlist.html", {"listings": listings})
+    return render(request, "auctions/watchlist.html", {"listings": listings, "listingTitles": json.dumps(format_listing_for_search())})
 
 
-def search(request):
+def search(request, query=None):
     if request.method == "POST":
         title = request.POST.get('title', '')
         listings = Listing.objects.filter(title__contains=title)

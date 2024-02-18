@@ -31,5 +31,6 @@ urlpatterns = [
     path("listing-history", views.view_listing_history, name='listing-history'),
     path("watchlist", views.view_watchlist, name='watchlist'),
     path("search", views.search, name="search"),
+    path("search/<str:query>", views.search, name="search-with-query"),
     path("comment/<int:id>", views.comment, name="comment"),
 ]

@@ -27,7 +27,18 @@
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
+
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <div id="search-bar-ss" class="mt-3 mb-1">
+                        <div class="d-xl-flex d-lg-none d-md-none d-flex mb-xl-0 mb-lg-0">
+                            <input class="form-control me-2 form-control-sm rounded-pill" type="search"
+                                placeholder="Search" id="search-ss" onkeyup=searchRealTime()>
+                            <button class="btn btn-outline-secondary btn-sm rounded-pill px-2" onclick="postSearch()"><i
+                                    class="bi bi-search"></i></button>
+                        </div>
+                        <ul class="list-group list-group-flush" id="search-results-ss">
+                        </ul>
+                    </div>
                     {% if user.is_authenticated %}
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'purchase-history' %}">Purchases</a>
@@ -55,16 +66,16 @@
                     </li>
                     {% endif %}
                 </ul>
-                <form class="d-flex w-50 me-auto my-2 form-control p-0" role="search" action="{% url 'search' %}"
-                    menthod="POST">
-                    {% csrf_token%}
+                <div id="search-bar-ws" class="d-flex w-50 me-auto my-2 p-0">
                     <button type="submit" style="background-color: var(--custom-secondary); border-width: 0px;"
-                        class="text-white rounded-start px-2"><i class="bi bi-search"></i>
+                        class="text-white rounded-start px-2" onclick="postSearch()"><i class="bi bi-search"></i>
                     </button>
-                    <input class="form-control w-100 ms-0" type="search" placeholder="Search" aria-label="Search"
-                        style="border-width: 0px;">
-                </form>
-                <div class="float-lg-end float-start">
+                    <input class="form-control w-100 ms-0" id="search-ws" type="search" placeholder="Search"
+                        aria-label="Search" style="border-width: 0px;" onkeyup=searchRealTime()>
+                    <ul class="list-group list-group-flush" id="search-results-ws">
+                    </ul>
+                </div>
+                <div class="float-end">
                     <a class="btn btn-secondary btn-sm mt-1" href="{% url 'create-listing' %}"><i
                             class="bi bi-bag-plus-fill"></i>
                         Create Listing</a>
@@ -149,6 +160,63 @@
         {% endfor %}
         {% endif %}
     });
+</script>
+<script>
+    var listings = JSON.parse("{{listingTitles|escapejs}}")
+    console.log(listings)
+    function searchRealTime() {
+        var css = $("#search-bar-ss").css("display")
+        if (css == "none") {
+
+            $("#search-results-ws").empty()
+            var input = $("#search-ws").val()
+
+            function searchSubString(item) {
+                var secondElement = item[1]; // Access the second element of the item
+                return secondElement.toLowerCase().includes(input.toLowerCase());
+            }
+            const results = listings.filter(searchSubString).slice(0, 4);
+
+            results.forEach(element => {
+                $("#search-results-ws").append('<li class="list-group-item list-group-item-action "><a class="link-secondary text-decoration-none" href="{% url "view-listing" 1234 %}">'.replace('1234', element[0]) + element[1] + '</a></li')
+            });
+
+            if (input.length == 0) {
+                $("#search-results-ws").empty()
+            }
+
+        }
+        else {
+            $("#search-results-ss").empty()
+            var input = $("#search-ss").val()
+            function searchSubString(item) {
+                var secondElement = item[1]; // Access the second element of the item
+                return secondElement.toLowerCase().includes(input.toLowerCase());
+            }
+            const results = listings.filter(searchSubString).slice(0, 4);
+
+            results.forEach(element => {
+                $("#search-results-ss").append('<li class="list-group-item list-group-item-action"><a class="link-secondary text-decoration-none" href="{% url "view-listing" 1234 %}">'.replace('1234', element[0]) + element[1] + '</a></li')
+            });
+
+            if (input.length == 0) {
+                $("#search-results-ss").empty()
+            }
+        }
+    }
+
+    function postSearch() {
+        var css = $("#search-bar-ss").css("display")
+        if (css == "none") {
+            var query = $("#search-ws").val()
+        }
+        else {
+            var query = $("#search-ss").val()
+        }
+        var search = "{% url 'search-with-query'  1234 %}"
+        search = search.replace('1234', query.toString())
+        window.location.href = search
+    }
 </script>
 
 </html>

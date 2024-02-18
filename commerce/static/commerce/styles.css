@@ -10,6 +10,36 @@
     /* Replace with your preferred success color */
 }
 
+#search-bar-ss {
+    display: none;
+}
+
+#search-bar-ws {
+    position: relative;
+}
+
+#search-results-ws {
+    display: block;
+    position: absolute;
+    top: calc(100%);
+    /* Adjust this value as needed to position the dropdown */
+    left: 0;
+    width: 100%;
+    /* Add box shadow for a subtle effect */
+    z-index: 1000;
+    /* Set a higher z-index to ensure the dropdown is above other elements */
+    padding: 5px 0;
+    /* Add padding to the dropdown items */
+    list-style: none;
+    /* Remove default list styles */
+}
+
+#search-results {
+    position: absolute;
+    max-width: 10em;
+}
+
+
 .listing-images {
     cursor: zoom-in;
 }
@@ -512,5 +542,30 @@ body {
         width: 100%;
         overflow: hidden;
         z-index: -1;
+    }
+}
+
+@media only screen and (max-width: 992px) {
+    #search-results-ss {
+        position: absolute;
+        top: calc(100%);
+        /* Adjust this value as needed to position the dropdown */
+        left: 0;
+        width: 100%;
+        /* Add box shadow for a subtle effect */
+        z-index: 5000;
+        /* Set a higher z-index to ensure the dropdown is above other elements */
+        padding: 5px 0;
+        /* Add padding to the dropdown items */
+        list-style: none;
+    }
+
+    #search-bar-ss {
+        display: block !important;
+        position: relative;
+    }
+
+    #search-bar-ws {
+        display: none !important;
     }
 }

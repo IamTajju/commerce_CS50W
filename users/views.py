@@ -13,6 +13,8 @@ from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import ProtectedError
+import json
+from auctions.utils import format_listing_for_search
 
 
 def login_view(request):
@@ -147,7 +149,7 @@ def user_profile(request):
         user.save()
         return redirect('profile')
 
-    return render(request, 'users/profile-details.html', {'user': user, 'form': form, })
+    return render(request, 'users/profile-details.html', {'user': user, 'form': form, "listingTitles": json.dumps(format_listing_for_search())})
 
 
 @csrf_exempt
@@ -272,7 +274,8 @@ def shipping_address_form_view(request, redirect=None):
 def view_shipping_address(request):
     addresses = Address.objects.filter(user=request.user)
     return render(request, 'users/shipping-addresses.html',
-                  {'addresses': addresses}
+                  {'addresses': addresses, "listingTitles": json.dumps(
+                      format_listing_for_search())}
                   )
 
 
@@ -281,7 +284,8 @@ def view_payment_methods(request):
     methods = PaymentMethod.objects.filter(user=request.user).exclude(
         payment_option=PaymentMethod.PaymentOption.COD)
     return render(request, 'users/payment-methods.html',
-                  {'payment_methods': methods}
+                  {'payment_methods': methods, "listingTitles": json.dumps(
+                      format_listing_for_search())}
                   )
 
 

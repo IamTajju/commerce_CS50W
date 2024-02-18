@@ -20,15 +20,18 @@ def format_price(price):
 
     return price if magnitude == 0 else f"{price:.0f}{suffixes[magnitude-1]}"
 
+
 def is_anonymous_user(user):
     if isinstance(user, AnonymousUser):
         return True
+
 
 def get_field_name_display(field_name):
     # Remove underscores and capitalize each word
     formatted_data = ' '.join(word.capitalize()
                               for word in field_name.split('_'))
     return formatted_data
+
 
 def apply_filter(queryset, filters, max_price):
     q_objects = Q()
@@ -49,6 +52,12 @@ def apply_filter(queryset, filters, max_price):
         else:
             q_objects &= Q(**{f"{param}__name__in": value})
     return queryset.filter(q_objects)
+
+
+def format_listing_for_search():
+    listings = list(Listing.objects.filter(
+        active=True).values_list('id', 'title'))
+    return listings
 
 
 class PurchaseFormManager:
@@ -103,7 +112,6 @@ class PurchaseFormManager:
 
         # If there's no appropriate form class found, return None
         return None
-
 
 
 class Paginator:
