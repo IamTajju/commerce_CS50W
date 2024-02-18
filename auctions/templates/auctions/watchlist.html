@@ -1,0 +1,75 @@
+{% extends "users/profile-layout.html" %}
+{% load static %}
+{% block child%}
+{% if listings %}
+<h2>Your Watchlist </h2>
+<div class="table-responsive">
+    <table class="table table-hover shadow-sm border-top" id="active-listings-table">
+        <thead class="align-top table-header">
+            <tr>
+                <th scope="col">Sl No</th>
+                <th scope="col">Purchased</th>
+                <th scope="col">Image</th>
+                <th scope="col">Title</th>
+                <th scope="col">Format</th>
+                <th scope="col">Base Price</th>
+                <th scope="col">Current Price</th>
+                <th scope="col">Creation Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for listing in listings%}
+            <tr class="lead fs-6 align-middle">
+                <td>{{forloop.counter}}</td>
+                <td>
+                    {% if listing.purchased %}
+                    {% if request.user == listing.get_winning_purchase.buyer %}
+                    <span class="badge badge-bg-success">PURCHASED</span>
+                    {% else %}
+                    <span class="badge badge-bg-danger">SOLD</span>
+                    {% endif %}
+                    {% else %}
+                    <span class="badge text-bg-success">ONGOING</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <a href="{% url 'view-listing' listing.id %}">
+                        <img class="rounded" src="{{ listing.hero_image.url }}" width="100px">
+                    </a>
+                </td>
+                <td>
+                    <a href="{% url 'view-listing' listing.id %}" class="d-inline-block text-truncate"
+                        style="max-width: 100px;">{{ listing.title }}
+                    </a>
+                </td>
+                <td><span
+                        class="badge {% if listing.buying_format == 'A' %} badge-bg-secondary {% elif listing.buying_format == 'AO' %} badge-bg-primary {% else %} badge-bg-success {% endif %}">
+                        {{listing.get_buying_format_display }}
+                    </span>
+                </td>
+                <td>৳ {{ listing.base_price }}</td>
+                <td>
+                    <strong>৳ {{listing.get_price}} </strong>
+                </td>
+                <td class="small-custom text-monospace">
+                    {{listing.timestamp}}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<center>
+    <div class="mt-xl-5">
+        <img class="img-fluid" src="{% static 'auctions/images/box.png'%}">
+        <h3 class="mt-5">Empty Watchlist.</h3>
+        <div class="d-flex justify-content-center flex-row align-items-center mt-3">
+            <p class="lead me-2 fs-6 mb-0">Browse our Listings:</p>
+            <a class="btn btn-success btn-sm small-custom" href="{% url 'index' %}"><i class="bi bi-bag-plus-fill"></i>
+                Browse</a>
+        </div>
+    </div>
+</center>
+{% endif %}
+{% endblock child %}

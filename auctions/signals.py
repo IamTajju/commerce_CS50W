@@ -26,3 +26,5 @@ def update_offer_status_on_counter_create(sender, instance, created, **kwargs):
 
 
         
+    
+

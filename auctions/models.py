@@ -85,6 +85,20 @@ class Listing(models.Model):
 
         return self.base_price
 
+    @property
+    def get_winning_purchase(self):
+        if self.purchased:
+            if self.buying_format == self.BuyingFormat.AUCTION:
+                return Bid.objects.get(listing=self, bid_status=Bid.BidStatus.WON)
+            elif self.buying_format == self.BuyingFormat.ACCEPT_OFFERS:
+                offer = Offer.objects.filter(Q(offer_status=Offer.OfferStatus.ACCEPTED) | Q(
+                    offer_status=Offer.OfferStatus.COUNTER_ACCEPTED)).get(listing=self)
+                return offer
+            else:
+                return BuyItNow.objects.get(listing=self)
+        else:
+            return None
+
     @staticmethod
     def annotate_price(listings):
         return listings.annotate(
@@ -133,7 +147,8 @@ class Auction(models.Model):
 
 
 class PurchaseTransaction(models.Model):
-    listing = models.ForeignKey(Listing, on_delete=models.CASCADE)
+    listing = models.ForeignKey(
+        Listing, on_delete=models.CASCADE, related_name='%(class)s')
     amount = models.PositiveIntegerField()
     buyer = models.ForeignKey(
         User, on_delete=models.PROTECT, related_name='%(class)s_buyer')

@@ -62,6 +62,8 @@ def view_listing(request, id):
     additional_listing_images = ListingAdditionalImages.objects.filter(
         listing=listing)
 
+    total_bids_offers = Bid.objects.filter(listing=listing).count(
+    ) if listing.buying_format == Listing.BuyingFormat.AUCTION else Offer.objects.filter(listing=listing).count()
     response_context = {
         "listing": listing,
         "additional_listing_images": additional_listing_images,
@@ -73,7 +75,7 @@ def view_listing(request, id):
         'user_logged_in': not is_anonymous_user(request.user),
         'watchers': User.objects.filter(watchlist=listing).annotate(
             watchlist_count=Count('id')).count(),
-        'total_bids': Bid.objects.filter(listing=listing).count()
+        'total_bids_offers': total_bids_offers
     }
 
     # Logged In User action
@@ -238,7 +240,7 @@ def sellers_offers_list(request, listing_id):
         listing = Listing.objects.get(
             id=listing_id, listed_by=request.user, purchased=False, active=True)
 
-        offers = Offer.objects.filter(listing=listing)
+        offers = Offer.objects.filter(listing=listing).order_by('-timestamp')
         counter_offer_forms = [CounterOfferForm(
             offer=offer) if offer.offer_status == Offer.OfferStatus.PENDING else None for offer in offers]
 
@@ -319,11 +321,12 @@ def reject_counter_offer(request, counter_offer_id):
         CounterOffer, id=counter_offer_id, offer__buyer=request.user)
 
     try:
-        OfferServices().process_offer_reject(counter_offer=counter_offer)
+        OfferServices().process_counter_offer_reject(counter_offer=counter_offer)
         messages.info(request, f"Counter Offer Rejected.")
         return redirect("buyer-dashboard")
 
-    except:
+    except Exception as e:
+        print(e)
         messages.error(
             request, "There was an issue with transaction. Please contact the service admistrator")
         return redirect("buyer-dashboard")
@@ -349,8 +352,10 @@ def make_counter_offer(request, offer_id):
 
 @login_required(login_url=settings.LOGIN_URL)
 def view_buyer_dashboard(request):
-    offers = Offer.objects.filter(buyer=request.user, listing__active=True)
-    bids = Bid.objects.filter(buyer=request.user, listing__active=True)
+    offers = Offer.objects.filter(
+        buyer=request.user, listing__active=True).order_by('-timestamp')
+    bids = Bid.objects.filter(
+        buyer=request.user, listing__active=True).order_by('-timestamp')
 
     return render(request, "auctions/buyer-dashboard.html", {
         "offers": offers,
@@ -361,10 +366,11 @@ def view_buyer_dashboard(request):
 @login_required(login_url=settings.LOGIN_URL)
 def view_purchase_history(request):
     offers = Offer.objects.filter(
-        buyer=request.user, listing__active=False).order_by('offer_status')
+        buyer=request.user, listing__active=False).order_by('offer_status').order_by('-timestamp')
     bids = Bid.objects.filter(
-        buyer=request.user, listing__active=False).order_by('bid_status')
-    bins = BuyItNow.objects.filter(buyer=request.user, listing__active=False)
+        buyer=request.user, listing__active=False).order_by('bid_status').order_by('-timestamp')
+    bins = BuyItNow.objects.filter(
+        buyer=request.user, listing__active=False).order_by('-timestamp')
     purchases = zip_longest(offers, bids, bins, fillvalue=None)
     return render(request, "auctions/purchase-history.html", {
         "purchases": purchases
@@ -375,7 +381,7 @@ def view_purchase_history(request):
 def view_listing_history(request):
     listings = Listing.objects.filter(listed_by=request.user, active=False).annotate(
         watchlist_count=Count('user')
-    )
+    ).order_by('-timestamp')
     if not listings:
         return render(request, 'auctions/listing-history.html', {"empty_message": "No Listing History.", "sell": True})
 
@@ -384,6 +390,13 @@ def view_listing_history(request):
     total_listings_sold = summary_stats['id__count']
     total_revenue = format_price(summary_stats['base_price__sum'])
     return render(request, "auctions/listing-history.html", {"listings": listings, "total_sold": total_listings_sold, "total_revenue": total_revenue})
+
+
+@login_required(login_url=settings.LOGIN_URL)
+def view_watchlist(request):
+    listings = request.user.watchlist.all().order_by('-timestamp')
+
+    return render(request, "auctions/watchlist.html", {"listings": listings})
 
 
 def search(request):

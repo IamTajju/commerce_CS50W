@@ -111,7 +111,7 @@ class OfferServices(PurchaseServices):
             counter_offer.counter_offer_status = CounterOffer.CounterOfferStatus.REJECTED
             counter_offer.save()
             offer = counter_offer.offer
-            offer.status = Offer.OfferStatus.COUNTER_REJECTED
+            offer.offer_status = Offer.OfferStatus.COUNTER_REJECTED
             offer.save()
 
     # Auxilary Methods
