@@ -1,9 +1,16 @@
+{% if not listing.active %}
+{% if listing.purchased %}
+<span class="badge badge-bg-success lead fs-4">SOLD!</span>
+{% else %}
+<span class="badge text-bg-secondary lead fs-4 mt-1">CLOSED!</span>
+{% endif %}
+{% else %}
 {% if not user_logged_in %}
 <a class="btn btn-primary" href="{% url 'login' %}">Log in to Bid</a>
 {% elif purchase_manager.is_seller %}
 <a class="btn btn-primary" href="{% url 'edit-listing' listing.id %}">Edit Listing</a>
 {% elif purchase_manager.attempted_purchase and not purchase_manager.form %}
-<a class="btn btn-primary">View Bid</a>
+<a class="btn btn-primary" href="{% url 'buyer-dashboard' %}">View Bid</a>
 {% else %}
 <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
     <i class="bi bi-bag-fill"></i>
@@ -22,4 +29,5 @@
 <a class="btn btn-outline-primary" href="{% url 'add-to-watchlist' listing.id %}">
     <i class="bi bi-eyeglasses"></i> Add to Watchlist
 </a>
+{% endif %}
 {% endif %}

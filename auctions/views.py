@@ -14,7 +14,7 @@ from django.conf import settings
 from django.forms import inlineformset_factory
 from .services import OfferServices, PurchaseServices
 import logging
-
+from itertools import zip_longest
 
 # Homepage
 def index(request):
@@ -296,7 +296,7 @@ def accept_counter_offer(request, counter_offer_id):
         OfferServices().process_offer_listing_sale(counter_offer=counter_offer)
         messages.success(
             request, f"Counter offer Accepted, Congratulations you've purchased the listing!")
-        return HttpResponse("Redirect to purchase history")
+        return redirect('purchase-history')
 
     except ValidationError as v:
         print(v)
@@ -357,17 +357,15 @@ def view_buyer_dashboard(request):
 
 
 @login_required(login_url=settings.LOGIN_URL)
-def counter_offers(request):
-    bids = Bid.objects.filter(buyer=request.user)
-
-    counter_offers = bids.filter(
-        listing__active=True, listing__buying_format=Listing.BuyingFormat.ACCEPT_OFFERS)
-
-    if request.method == 'POST':
-        pass
-
-    return render(request, "auctions/counter-offers.html", {
-        "counter_offers": counter_offers,
+def view_purchase_history(request):
+    offers = Offer.objects.filter(
+        buyer=request.user, listing__active=False).order_by('offer_status')
+    bids = Bid.objects.filter(
+        buyer=request.user, listing__active=False).order_by('bid_status')
+    bins = BuyItNow.objects.filter(buyer=request.user, listing__active=False)
+    purchases = zip_longest(offers, bids, bins, fillvalue=None)
+    return render(request, "auctions/purchase-history.html", {
+        "purchases": purchases
     })
 
 

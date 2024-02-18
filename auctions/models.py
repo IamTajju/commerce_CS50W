@@ -153,6 +153,20 @@ class Bid(PurchaseTransaction):
     auction = models.ForeignKey(Auction, on_delete=models.CASCADE)
     bid_status = models.CharField(
         max_length=2, choices=BidStatus.choices, default=BidStatus.ONGOING)
+    
+
+    def save(self, *args, **kwargs):
+        if self.bid_status == self.BidStatus.WON:
+            # Check if there are already accepted bid for the same listing
+            winning_bids = Bid.objects.filter(
+                listing=self.listing,
+                bid_status=self.BidStatus.WON
+            ).exclude(id=self.id)  # Exclude current instance if it's being updated
+
+            if winning_bids.exists():
+                raise ValidationError("Item already Purchased.")
+
+        super().save(*args, **kwargs)
 
 
 class Offer(PurchaseTransaction):
