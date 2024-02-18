@@ -33,63 +33,66 @@
     </div>
 </section>
 <h4 class="header-4 user-pages-header mt-4">Offers for Listing</h4>
-<table class="table table-hover shadow-sm border-top" id="ongoing-offers-table">
-    <thead class="align-top table-header">
-        <tr>
-            <th scope="col">Sl No</th>
-            <th scope="col">Buyer Username</th>
-            <th scope="col">Buyer Address</th>
-            <th scope="col">Offer Amount</th>
-            <th scope="col">Accept Offer</th>
-            <th scope="col">Make a Counter Offer</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for offer, counter_offer_form in offers_forms %}
-        <tr class="lead fs-6 align-middle">
-            <td>{{forloop.counter}}</td>
-            <td><strong>{{offer.buyer}}</strong></td>
-            <td>{{offer.shipping_address}}</td>
-            <td>৳ {{offer.amount}}</td>
-            {% if counter_offer_form %}
-            <td>
-                <div class="d-flex">
-                    <a class="btn btn-success btn-sm small-custom mx-1 counter-offer-btn"
-                        onClick="confirmOffer('{% url 'accept-offer' offer.id %}')"><i class="bi bi-check-lg"></i></a>
-                    <a class="btn btn-danger btn-sm small-custom mx-1 counter-offer-btn"
-                        onClick="rejectOffer('{% url 'reject-offer' offer.id %}')"><i class="bi bi-x-lg"></i></a>
-                </div>
-            </td>
-            <td>
-                <form action="{% url 'make-counter-offer' offer.id %}" class="row g-3 align-items-center" method="POST"
-                    id="counter-offer-form-{{forloop.counter}}">
-                    {% csrf_token %}
-                    <div class="col-lg-6 col-auto">
-                        <div class="input-group input-group-sm">
-                            {{ counter_offer_form.counter_offer_amount }}
+<div class="table-responsive">
+    <table class="table table-hover shadow-sm border-top" id="ongoing-offers-table">
+        <thead class="align-top table-header">
+            <tr>
+                <th scope="col">Sl No</th>
+                <th scope="col">Buyer Username</th>
+                <th scope="col">Buyer Address</th>
+                <th scope="col">Offer Amount</th>
+                <th scope="col">Accept Offer</th>
+                <th scope="col">Make a Counter Offer</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for offer, counter_offer_form in offers_forms %}
+            <tr class="lead fs-6 align-middle">
+                <td>{{forloop.counter}}</td>
+                <td><strong>{{offer.buyer}}</strong></td>
+                <td>{{offer.shipping_address}}</td>
+                <td>৳ {{offer.amount}}</td>
+                {% if counter_offer_form %}
+                <td>
+                    <div class="d-flex">
+                        <a class="btn btn-success btn-sm small-custom mx-1 counter-offer-btn"
+                            onClick="confirmOffer('{% url 'accept-offer' offer.id %}')"><i
+                                class="bi bi-check-lg"></i></a>
+                        <a class="btn btn-danger btn-sm small-custom mx-1 counter-offer-btn"
+                            onClick="rejectOffer('{% url 'reject-offer' offer.id %}')"><i class="bi bi-x-lg"></i></a>
+                    </div>
+                </td>
+                <td>
+                    <form action="{% url 'make-counter-offer' offer.id %}" class="row g-3 align-items-center"
+                        method="POST" id="counter-offer-form-{{forloop.counter}}">
+                        {% csrf_token %}
+                        <div class="col-lg-6 col-auto">
+                            <div class="input-group input-group-sm">
+                                {{ counter_offer_form.counter_offer_amount }}
+                            </div>
                         </div>
-                    </div>
-                    <div class="col-lg-4 col-auto">
-                        <button type="button" class="btn btn-primary btn-sm small-custom"
-                            onclick="confirmCounterOfferFormSubmit({{forloop.counter}})">Submit</button>
-                    </div>
-                </form>
-            </td>
-            {% else %}
-            <td colspan="2">
-                {% if offer.offer_status == 'R' %}
-                <span class="badge text-bg-secondary">Rejected</span>
-                {% elif offer.offer_status == 'CR' %}
-                <span class="badge text-bg-warning">Counter Rejected</span>
-                {% elif offer.offer_status == 'C'%}
-                <span class="badge badge-bg-secondary">Pending Response for
-                    ৳ {{offer.c.counter_offer_amount}}</span>
+                        <div class="col-lg-4 col-auto">
+                            <button type="button" class="btn btn-primary btn-sm small-custom"
+                                onclick="confirmCounterOfferFormSubmit({{forloop.counter}})">Submit</button>
+                        </div>
+                    </form>
+                </td>
+                {% else %}
+                <td colspan="2">
+                    {% if offer.offer_status == 'R' %}
+                    <span class="badge text-bg-secondary">Rejected</span>
+                    {% elif offer.offer_status == 'CR' %}
+                    <span class="badge text-bg-warning">Counter Rejected</span>
+                    {% elif offer.offer_status == 'C'%}
+                    <span class="badge badge-bg-secondary">Pending Response for
+                        ৳ {{offer.c.counter_offer_amount}}</span>
+                    {% endif %}
+                </td>
                 {% endif %}
-            </td>
-            {% endif %}
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
 
 {% endblock child %}

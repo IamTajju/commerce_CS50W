@@ -28,7 +28,7 @@ urlpatterns = [
     path("reject-counter-offer/<int:counter_offer_id>",
          views.reject_counter_offer, name='reject-counter-offer'),
     path("purchase-history", views.view_purchase_history, name='purchase-history'),
-    path("bids", views.index, name="user_bids"),
+    path("listing-history", views.view_listing_history, name='listing-history'),
     path("search", views.search, name="search"),
     path("comment/<int:id>", views.comment, name="comment"),
 ]

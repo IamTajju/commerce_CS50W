@@ -30,10 +30,28 @@
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                     {% if user.is_authenticated %}
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'user_bids' %}">Bids</a>
+                        <a class="nav-link" href="{% url 'purchase-history' %}">Purchases</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'index' %}">Watchlist</a>
+                        <a class="nav-link" href="{% url 'buyer-dashboard' %}">Watchlist</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+                            aria-expanded="false">
+                            Dashboard
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="nav-link ms-lg-0 ms-3" href="{% url 'buyer-dashboard' %}">Buying Dashboard</a>
+                            </li>
+                            <li><a class="nav-link ms-lg-0 ms-3" href="{% url 'seller-dashboard' %}">Selling
+                                    Dashboard</a>
+                            </li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li><a class="nav-link ms-lg-0 ms-3" href="{% url 'profile' %}">Profile Details</a>
+                            </li>
+                        </ul>
                     </li>
                     {% endif %}
                 </ul>
@@ -61,7 +79,7 @@
                             class="bi bi-person-plus-fill"></i> Register</a>
                     {% endif %}
                     {% if user.is_authenticated %}
-                    <a class="ms-2 ali float-end" href="{% url 'profile' %}">
+                    <a class="ms-2 float-end" href="{% url 'profile' %}">
                         <div style="width: 40px; height: 40px; overflow: hidden; border-radius: 50%;">
                             <img src="{{user.display_picture.url}}"
                                 style="height:100%; width: 100%; object-fit: cover;">

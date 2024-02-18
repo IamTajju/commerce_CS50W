@@ -75,7 +75,15 @@ class Listing(models.Model):
 
     @property
     def get_price(self):
-        return self.auction.highest_bid_amount if self.buying_format == self.BuyingFormat.AUCTION else self.base_price
+        if self.buying_format == self.BuyingFormat.AUCTION:
+            return self.auction.highest_bid_amount
+        elif self.buying_format == self.BuyingFormat.ACCEPT_OFFERS:
+            if not self.active and self.purchased:
+                offer = Offer.objects.filter(Q(offer_status=Offer.OfferStatus.ACCEPTED) | Q(
+                    offer_status=Offer.OfferStatus.COUNTER_ACCEPTED)).get(listing=self)
+                return offer.c.counter_offer_amount if offer.c else offer.amount
+
+        return self.base_price
 
     @staticmethod
     def annotate_price(listings):
@@ -153,7 +161,6 @@ class Bid(PurchaseTransaction):
     auction = models.ForeignKey(Auction, on_delete=models.CASCADE)
     bid_status = models.CharField(
         max_length=2, choices=BidStatus.choices, default=BidStatus.ONGOING)
-    
 
     def save(self, *args, **kwargs):
         if self.bid_status == self.BidStatus.WON:

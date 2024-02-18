@@ -67,82 +67,87 @@
 <hr>
 
 <h4 class="mt-5">Your Offers on Listings</h4>
-<table class="table table-hover shadow-sm" id="counter-offer-table">
-    <thead class="align-top table-header">
-        <tr>
-            <th scope="col">#</th>
-            <th scope="col">Image</th>
-            <th scope="col">Title</th>
-            <th scope="col">Listed Price</th>
-            <th scope="col">Your Offer</th>
-            <th scope="col">Counter Offer</th>
-            <th scope="col">Accept Counter</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% if offers%}
-        {% for offer in offers%}
-        <tr class="lead fs-6 align-middle">
-            <td>{{forloop.counter}}</td>
-            <td><img src="{{ offer.listing.hero_image.url }}" width="80px"></td>
-            <td><a href="{% url 'view-listing' offer.listing.id %}" style="color: #2E2E2E">{{ offer.listing.title }}</a>
-            </td>
-            <td>৳ {{ offer.listing.base_price }}</td>
-            <td>৳ {{ offer.amount }}</td>
-            {% if offer.offer_status == 'R' %}
-            <td colspan="3"><span class="badge badge-bg-secondar fs-6">{{offer.get_offer_status_display}}</span></td>
-            {% else %}
-            {% if offer.c %}
-            <td class="me-5">
-                <span class="badge badge-bg-success fs-6">৳ {{ offer.c.counter_offer_amount}}</span>
-            </td>
-            {% else %}
-            <td><span class="badge badge-bg-danger fs-6">Pending</span></td>
-            {% endif %}
-            <td class="me-5">
+<div class="table-responsive">
+    <table class="table table-hover shadow-sm" id="counter-offer-table">
+        <thead class="align-top table-header">
+            <tr>
+                <th scope="col">#</th>
+                <th scope="col">Image</th>
+                <th scope="col">Title</th>
+                <th scope="col">Listed Price</th>
+                <th scope="col">Your Offer</th>
+                <th scope="col">Counter Offer</th>
+                <th scope="col">Accept Counter</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if offers%}
+            {% for offer in offers%}
+            <tr class="lead fs-6 align-middle">
+                <td>{{forloop.counter}}</td>
+                <td><img src="{{ offer.listing.hero_image.url }}" width="80px"></td>
+                <td><a href="{% url 'view-listing' offer.listing.id %}" style="color: #2E2E2E">{{ offer.listing.title
+                        }}</a>
+                </td>
+                <td>৳ {{ offer.listing.base_price }}</td>
+                <td>৳ {{ offer.amount }}</td>
+                {% if offer.offer_status == 'R' %}
+                <td colspan="3"><span class="badge badge-bg-secondar fs-6">{{offer.get_offer_status_display}}</span>
+                </td>
+                {% else %}
                 {% if offer.c %}
-                {% if offer.offer_status == 'CR' %}
-                <span class="badge badge-bg-dark fs-6">৳ {{ offer.get_offer_status_display}}</span>
+                <td class="me-5">
+                    <span class="badge badge-bg-success fs-6">৳ {{ offer.c.counter_offer_amount}}</span>
+                </td>
                 {% else %}
-                <div class="d-flex ">
-                    <a class="btn btn-success btn-sm small-custom mx-1 counter-offer-btn"
-                        onClick="confirmCounterOffer('{% url 'accept-counter-offer' offer.c.id %}')"><i
-                            class="bi bi-check-lg"></i></a>
-                    <a class="btn btn-danger btn-sm small-custom mx-1 counter-offer-btn"
-                        onClick="rejectCounterOffer('{% url 'reject-counter-offer' offer.c.id %}')"><i
-                            class="bi bi-x-lg"></i></a>
-                </div>
+                <td><span class="badge badge-bg-danger fs-6">Pending</span></td>
                 {% endif %}
-                {% else %}
-                <div>
-                    <p class="text-muted">N/A</p>
-                </div>
-                {% endif %}
-            </td>
-            {% endif %}
-        </tr>
-        {% endfor %}
-        {% else %}
-        <tr>
-            <td colspan="7">
-                {% load static %}
-                <center>
-                    <div class="mt-xl-5">
-                        <img class="img-fluid" src="{% static 'auctions/images/box.png'%}" style="max-height: 100px;">
-                        <h3 class="mt-5">No offers made.</h3>
-                        <div class="d-flex justify-content-center flex-row align-items-center mt-3">
-                            <p class="lead me-2 fs-6 mb-0">Browse our Listings:</p>
-                            <a class="btn btn-secondary btn-sm small-custom" href="{% url 'index' %}"><i
-                                    class="bi bi-bag-plus-fill"></i>
-                                Browse</a>
-                        </div>
+                <td class="me-5">
+                    {% if offer.c %}
+                    {% if offer.offer_status == 'CR' %}
+                    <span class="badge badge-bg-dark fs-6">৳ {{ offer.get_offer_status_display}}</span>
+                    {% else %}
+                    <div class="d-flex ">
+                        <a class="btn btn-success btn-sm small-custom mx-1 counter-offer-btn"
+                            onClick="confirmCounterOffer('{% url 'accept-counter-offer' offer.c.id %}')"><i
+                                class="bi bi-check-lg"></i></a>
+                        <a class="btn btn-danger btn-sm small-custom mx-1 counter-offer-btn"
+                            onClick="rejectCounterOffer('{% url 'reject-counter-offer' offer.c.id %}')"><i
+                                class="bi bi-x-lg"></i></a>
                     </div>
-                </center>
-            </td>
-        </tr>
-        {% endif %}
-    </tbody>
-</table>
+                    {% endif %}
+                    {% else %}
+                    <div>
+                        <p class="text-muted">N/A</p>
+                    </div>
+                    {% endif %}
+                </td>
+                {% endif %}
+            </tr>
+            {% endfor %}
+            {% else %}
+            <tr>
+                <td colspan="7">
+                    {% load static %}
+                    <center>
+                        <div class="mt-xl-5">
+                            <img class="img-fluid" src="{% static 'auctions/images/box.png'%}"
+                                style="max-height: 100px;">
+                            <h3 class="mt-5">No offers made.</h3>
+                            <div class="d-flex justify-content-center flex-row align-items-center mt-3">
+                                <p class="lead me-2 fs-6 mb-0">Browse our Listings:</p>
+                                <a class="btn btn-secondary btn-sm small-custom" href="{% url 'index' %}"><i
+                                        class="bi bi-bag-plus-fill"></i>
+                                    Browse</a>
+                            </div>
+                        </div>
+                    </center>
+                </td>
+            </tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
 {% else %}
 {% load static %}
 <center>

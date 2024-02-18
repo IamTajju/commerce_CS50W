@@ -2,16 +2,18 @@
 {% load static %}
 {% block child%}
 {% if listings %}
-<h2>Selling Dashboard </h2>
+<h2>Listing History </h2>
 <div class="card py-4 px-xl-0 px-1 list-bg shadow-sm">
     <div class="row align-items-center justify-content-center text-center lead py-2">
         <div class="col-lg-6 col-12">
-            <p style="color:#4e4e4e; margin-bottom: 0;"><i class="bi bi-cash"></i>
-                Exp. Revenue: ৳ {{expected_revenue}}</p>
+            <p style="color:#4e4e4e; margin-bottom: 0; font-weight: bold;" class="fs-4"><i class="bi bi-cash"></i>
+                Total Revenue: ৳ {{total_revenue}}</p>
         </div>
         <div class="col-lg-6 col-12">
-            <p style="color:#4e4e4e; margin-bottom: 0;"><i class="bi bi-card-list"></i> Active Listings:
-                {{total_listings}}</p>
+            <p style="color:#4e4e4e; margin-bottom: 0; font-weight: bold;" class="fs-4"><i class="bi bi-card-list"></i>
+                Listings
+                Sold:
+                {{total_sold}}</p>
         </div>
     </div>
 </div>
@@ -21,20 +23,27 @@
         <thead class="align-top table-header">
             <tr>
                 <th scope="col">Sl No</th>
+                <th scope="col">Purchased</th>
                 <th scope="col">Image</th>
                 <th scope="col">Title</th>
                 <th scope="col">Format</th>
                 <th scope="col">Base Price</th>
-                <th scope="col">Current Price</th>
+                <th scope="col">Final Price</th>
                 <th scope="col">Watch Count</th>
-                <th scope="col">Edit</th>
-                <th scope="col">Close</th>
+                <th scope="col">Creation Date</th>
             </tr>
         </thead>
         <tbody>
             {% for listing in listings%}
             <tr class="lead fs-6 align-middle">
                 <td>{{forloop.counter}}</td>
+                <td>
+                    {% if listing.purchased %}
+                    <span class="badge badge-bg-success">SOLD</span>
+                    {% else %}
+                    <span class="badge text-bg-secondary">CLOSED</span>
+                    {% endif %}
+                </td>
                 <td>
                     <a href="{% url 'view-listing' listing.id %}">
                         <img class="rounded" src="{{ listing.hero_image.url }}" width="100px">
@@ -52,38 +61,14 @@
                 </td>
                 <td>৳ {{ listing.base_price }}</td>
                 <td>
-                    {% if listing.buying_format == 'AO' %}
-                    {% if listing.offer_set.count == 0 %}
-                    <a class="btn btn-secondary btn-sm small-custom disabled">
-                        No offers yet.
-                    </a>
-                    {% else %}
-                    <a class="btn btn-secondary btn-sm small-custom"
-                        href="{% url 'seller-offers-received' listing.id %}">
-                        View Offers
-                    </a>
-                    {% endif %}
-                    {% elif listing.buying_format == 'A' %}
                     <strong>৳ {{listing.get_price}} </strong>
-                    {% else %}
-                    <span class="badge badge-bd-danger">Sale Pending</span>
-                    {% endif %}
                 </td>
                 <td>
                     {{listing.watchlist_count}}
                 </td>
-                <td>
-                    <a class="btn btn-primary btn-sm small-custom" href="{% url 'edit-listing' listing.id%}">
-                        Edit
-                    </a>
+                <td class="small-custom text-monospace">
+                    {{listing.timestamp}}
                 </td>
-                <td>
-                    <a class="btn btn-danger btn-sm small-custom"
-                        onClick="confirmListingClose('{% url 'close-listing' listing.id %}')">
-                        Close
-                    </a>
-                </td>
-
             </tr>
             {% endfor %}
         </tbody>

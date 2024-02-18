@@ -3,98 +3,102 @@
 {% block child %}
 {% if purchases %}
 <h2 class="header-4 user-pages-header">Purchase History</h2>
-<table class="table table-hover shadow-sm" id="ongoing-offers-table">
-    <thead class="align-top table-header">
-        <tr>
-            <th scope="col">#</th>
-            <th scope="col">Purchased</th>
-            <th scope="col">Title</th>
-            <th scope="col">Format</th>
-            <th scope="col">Listed Price</th>
-            <th scope="col">Your Bid/Offer</th>
-            <th scope="col">Final Price</th>
-            <th scope="col">Status</th>
-            <th scope="col">Purchase Date</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for offer, bid, bin in purchases%}
-        <tr class="small-custom align-middle">
-            <td>{{forloop.counter}}</td>
-            <td class="lead fs-6">
+<div class="table-responsive">
+    <table class="table table-hover shadow-sm" id="ongoing-offers-table">
+        <thead class="align-top table-header">
+            <tr>
+                <th scope="col">#</th>
+                <th scope="col">Purchased</th>
+                <th scope="col">Title</th>
+                <th scope="col">Format</th>
+                <th scope="col">Listed Price</th>
+                <th scope="col">Your Bid/Offer</th>
+                <th scope="col">Final Price</th>
+                <th scope="col">Status</th>
+                <th scope="col">Purchase Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for offer, bid, bin in purchases%}
+            <tr class="small-custom align-middle">
+                <td>{{forloop.counter}}</td>
+                <td class="lead fs-6">
+                    {% if offer %}
+                    {% if offer.offer_status == 'A' or offer.offer_status == 'CA' %}
+                    <span class="badge badge-bg-success">PURCHASED</span>
+                    {% else %}
+                    <span class="badge badge-bg-danger">LOST</span>
+                    {% endif %}
+                    {% elif bid %}
+                    {% if bid.bid_status == 'W'%}
+                    <span class="badge badge-bg-success">PURCHASED</span>
+                    {% else %}
+                    <span class="badge badge-bg-danger">LOST</span>
+                    {% endif %}
+                    {% else %}
+                    <span class="badge badge-bg-success">PURCHASED</span>
+                    {% endif %}
+                </td>
                 {% if offer %}
-                {% if offer.offer_status == 'A' or offer.offer_status == 'CA' %}
-                <span class="badge badge-bg-success">PURCHASED</span>
+                <td>
+                    <a href="{% url 'view-listing' offer.listing.id %}" class="d-inline-block text-truncate lead fs-6"
+                        style="max-width: 100px;">
+                        {{offer.listing.title }}
+                    </a>
+                </td>
+                <td><span class="badge badge-bg-primary">{{ offer.listing.get_buying_format_display }}</span></td>
+                <td class="lead fs-6">৳ {{ offer.listing.base_price }}</td>
+                {% if offer.c %}
+                <td class="lead fs-6">৳ {{ offer.c.counter_offer_amount }}</td>
                 {% else %}
-                <span class="badge badge-bg-danger">LOST</span>
+                <td class="lead fs-6">৳ {{ offer.amount }}</td>
                 {% endif %}
+                <td class="me-5">
+                    <span
+                        class="badge {% if offer.offer_status == 'A' or offer.offer_status == 'CA' %}badge-bg-success{% else %}badge-bg-danger{% endif %} lead fs-6">৳
+                        {{ offer.listing.get_price }}</span>
+                </td>
+                <td class="me-5">
+                    <span
+                        class="badge {% if offer.offer_status == 'A' or offer.offer_status == 'CA' %}badge-bg-success{% else %}badge-bg-danger{% endif %}">
+                        {{ offer.get_offer_status_display }}</span>
+                </td>
+                <td>{{ offer.timestamp }}</td>
                 {% elif bid %}
-                {% if bid.bid_status == 'W'%}
-                <span class="badge badge-bg-success">PURCHASED</span>
-                {% else %}
-                <span class="badge badge-bg-danger">LOST</span>
+                <td><a href="{% url 'view-listing' bid.listing.id %}">{{ bid.listing.title }}</a></td>
+                <td><span class="badge badge-bg-secondary lead fs-6">{{ bid.listing.get_buying_format_display }}</span>
+                </td>
+                <td class="lead fs-6">৳ {{ bid.listing.base_price }}</td>
+                <td class="lead fs-6">৳ {{ bid.amount }}</td>
+                <td class="me-5">
+                    <span
+                        class="badge {% if bid.bid_status == 'W' %}badge-bg-success{% else %}badge-bg-danger{% endif %} lead fs-6">৳
+                        {{ bid.listing.get_price }}</span>
+                </td>
+                <td class="me-5">
+                    <span
+                        class="badge {% if bid.bid_status == 'W' %}badge-bg-success{% else %}badge-bg-danger{% endif %}">
+                        {{ bid.get_bid_status_display }}</span>
+                </td>
+                <td>{{ bid.timestamp }}</td>
+                {% elif bin %}
+                <td><a href="{% url 'view-listing' bin.listing.id %}" class="lead fs-6">{{ bin.listing.title }}</a></td>
+                <td><span class="badge badge-bg-success">{{ bin.listing.get_buying_format_display }}</span></td>
+                <td class="lead fs-6">৳ {{ bin.listing.base_price }}</td>
+                <td class="lead fs-6">N/A</td>
+                <td class="me-5 lead fs-6">
+                    <span class="badge badge-bg-success">৳ {{ bin.listing.get_price }}</span>
+                </td>
+                <td class="me-5">
+                    <span class="badge badge-bg-success">Sold</span>
+                </td>
+                <td>{{ bin.timestamp }}</td>
                 {% endif %}
-                {% else %}
-                <span class="badge badge-bg-success">PURCHASED</span>
-                {% endif %}
-            </td>
-            {% if offer %}
-            <td>
-                <a href="{% url 'view-listing' offer.listing.id %}" class="d-inline-block text-truncate lead fs-6"
-                    style="max-width: 100px;">
-                    {{offer.listing.title }}
-                </a>
-            </td>
-            <td><span class="badge badge-bg-primary">{{ offer.listing.get_buying_format_display }}</span></td>
-            <td class="lead fs-6">৳ {{ offer.listing.base_price }}</td>
-            {% if offer.c %}
-            <td class="lead fs-6">৳ {{ offer.c.counter_offer_amount }}</td>
-            {% else %}
-            <td class="lead fs-6">৳ {{ offer.amount }}</td>
-            {% endif %}
-            <td class="me-5">
-                <span
-                    class="badge {% if offer.offer_status == 'A' or offer.offer_status == 'CA' %}badge-bg-success{% else %}badge-bg-danger{% endif %} lead fs-6">৳
-                    {{ offer.listing.get_price }}</span>
-            </td>
-            <td class="me-5">
-                <span
-                    class="badge {% if offer.offer_status == 'A' or offer.offer_status == 'CA' %}badge-bg-success{% else %}badge-bg-danger{% endif %}">
-                    {{ offer.get_offer_status_display }}</span>
-            </td>
-            <td>{{ offer.timestamp }}</td>
-            {% elif bid %}
-            <td><a href="{% url 'view-listing' bid.listing.id %}">{{ bid.listing.title }}</a></td>
-            <td><span class="badge badge-bg-secondary lead fs-6">{{ bid.listing.get_buying_format_display }}</span></td>
-            <td class="lead fs-6">৳ {{ bid.listing.base_price }}</td>
-            <td class="lead fs-6">৳ {{ bid.amount }}</td>
-            <td class="me-5">
-                <span
-                    class="badge {% if bid.bid_status == 'W' %}badge-bg-success{% else %}badge-bg-danger{% endif %} lead fs-6">৳
-                    {{ bid.listing.get_price }}</span>
-            </td>
-            <td class="me-5">
-                <span class="badge {% if bid.bid_status == 'W' %}badge-bg-success{% else %}badge-bg-danger{% endif %}">
-                    {{ bid.get_bid_status_display }}</span>
-            </td>
-            <td>{{ bid.timestamp }}</td>
-            {% elif bin %}
-            <td><a href="{% url 'view-listing' bin.listing.id %}" class="lead fs-6">{{ bin.listing.title }}</a></td>
-            <td><span class="badge badge-bg-success">{{ bin.listing.get_buying_format_display }}</span></td>
-            <td class="lead fs-6">৳ {{ bin.listing.base_price }}</td>
-            <td class="lead fs-6">N/A</td>
-            <td class="me-5 lead fs-6">
-                <span class="badge badge-bg-success">৳ {{ bin.listing.get_price }}</span>
-            </td>
-            <td class="me-5">
-                <span class="badge badge-bg-success">Sold</span>
-            </td>
-            <td>{{ bin.timestamp }}</td>
-            {% endif %}
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
 {% else %}
 {% load static %}
 <center>

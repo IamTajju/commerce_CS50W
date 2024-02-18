@@ -17,6 +17,8 @@ import logging
 from itertools import zip_longest
 
 # Homepage
+
+
 def index(request):
     listings = Listing.objects.filter(active=True)
     categories = Category.objects.all()
@@ -218,7 +220,7 @@ def close_listing(request, listing_id):
         if listing.purchased:
             messages.success(
                 request, "Congratulations your Listing has been sold!")
-            return HttpResponse("redirect to purchase history")
+            return redirect("listing-history")
         else:
             messages.info(request, "Listing Closed Successfuly")
             return redirect("seller-dashboard")
@@ -256,7 +258,7 @@ def accept_offer(request, offer_id):
         OfferServices().process_offer_listing_sale(offer=offer)
         messages.success(
             request, f"Offer Accepted, Congratulations your Listing has been sold to {offer.buyer.username}")
-        return HttpResponse("Redirect to purchase history")
+        return redirect("listing-history")
 
     except ValidationError as v:
         print(v)
@@ -370,15 +372,18 @@ def view_purchase_history(request):
 
 
 @login_required(login_url=settings.LOGIN_URL)
-def ongoing_bids(request):
-    bids = Bid.objects.filter(buyer=request.user)
+def view_listing_history(request):
+    listings = Listing.objects.filter(listed_by=request.user, active=False).annotate(
+        watchlist_count=Count('user')
+    )
+    if not listings:
+        return render(request, 'auctions/listing-history.html', {"empty_message": "No Listing History.", "sell": True})
 
-    ongoing_bids = bids.filter(
-        listing__active=True, listing__buying_format=Listing.BuyingFormat.AUCTION)
-
-    return render(request, "auctions/ongoing-bids.html", {
-        "ongoing_bids": ongoing_bids,
-    })
+    summary_stats = listings.filter(purchased=True).aggregate(
+        Sum('base_price'), Count('id'))
+    total_listings_sold = summary_stats['id__count']
+    total_revenue = format_price(summary_stats['base_price__sum'])
+    return render(request, "auctions/listing-history.html", {"listings": listings, "total_sold": total_listings_sold, "total_revenue": total_revenue})
 
 
 def search(request):
