@@ -62,7 +62,7 @@
             </td>
             <td>
                 <form action="{% url 'make-counter-offer' offer.id %}" class="row g-3 align-items-center" method="POST"
-                    id="counter-offer-form">
+                    id="counter-offer-form-{{forloop.counter}}">
                     {% csrf_token %}
                     <div class="col-lg-6 col-auto">
                         <div class="input-group input-group-sm">
@@ -71,7 +71,7 @@
                     </div>
                     <div class="col-lg-4 col-auto">
                         <button type="button" class="btn btn-primary btn-sm small-custom"
-                            onclick="confirmCounterOfferFormSubmit()">Submit</button>
+                            onclick="confirmCounterOfferFormSubmit({{forloop.counter}})">Submit</button>
                     </div>
                 </form>
             </td>

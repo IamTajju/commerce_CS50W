@@ -252,9 +252,9 @@ function handleFiltering() {
 
 }
 
-function confirmCounterOffer() {
+function confirmCounterOffer(link) {
     Swal.fire({
-        title: 'Accept Offer?',
+        title: 'Accept Counter Offer?',
         icon: 'success',
         showCancelButton: true,
         confirmButtonColor: customSuccessColor,
@@ -268,12 +268,15 @@ function confirmCounterOffer() {
                     <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
                     Loading...
                 `;
+
+            // Redirect to the href link
+            window.location.href = link;
         }
     });
 }
-function rejectCounterOffer() {
+function rejectCounterOffer(link) {
     Swal.fire({
-        title: 'Reject Offer?',
+        title: 'Reject Counter Offer?',
         icon: 'warning',
         showCancelButton: true,
         confirmButtonColor: customDangerColor,
@@ -287,13 +290,15 @@ function rejectCounterOffer() {
                     <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
                     Loading...
                 `;
+
+            // Redirect to the href link
+            window.location.href = link;
         }
     });
 }
 
 
 function confirmOffer(link) {
-    event.preventDefault();
     Swal.fire({
         title: 'Accept Offer?',
         text: 'By accepting this offer, all other offers and counter offers will be automatically rejected, and the purchase will be confirmed irreversibly.',
@@ -363,25 +368,25 @@ function confirmListingClose(link) {
     });
 }
 
-function confirmCounterOfferFormSubmit() {
+function confirmCounterOfferFormSubmit(index) {
     Swal.fire({
         title: 'Send Counter Offer?',
         text: 'Sending a counter offer will nullify this offer if rejected by the buyer.',
         icon: 'info',
         showCancelButton: true,
-        confirmButtonColor: customPrimaryColor,
+        confirmButtonColor: customSuccessColor,
         cancelButtonColor: customDarkColor,
         confirmButtonText: 'Send Counter Offer',
         cancelButtonText: 'Cancel'
     }).then((result) => {
         if (result.isConfirmed) {
+            // Submit the form
+            document.getElementById(`counter-offer-form-${index}`).submit();
             // Show loading spinner
-            document.getElementById('ongoing-offers-table').innerHTML = `
+            document.getElementById('counter-offer-form-${index}').innerHTML = `
                         <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
                         Loading...
                     `;
-            // Submit the form
-            document.getElementById('counter-offer-form').submit();
         }
     });
 }

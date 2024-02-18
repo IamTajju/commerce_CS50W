@@ -9,10 +9,11 @@ from .utils import *
 from datetime import date
 from django.db.models import Count, Sum
 from django.core.exceptions import ObjectDoesNotExist
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, redirect
 from django.conf import settings
 from django.forms import inlineformset_factory
 from .services import OfferServices, PurchaseServices
+import logging
 
 
 # Homepage
@@ -64,7 +65,7 @@ def view_listing(request, id):
         "additional_listing_images": additional_listing_images,
         'comments': Comment.objects.filter(listing=listing),
         'similar_listings': Listing.objects.filter(
-            category=listing.category, location=listing.location).exclude(id=id)[:8],
+            category=listing.category, location=listing.location, active=True, purchased=False).exclude(id=id)[:8],
         'open_modal': False,
         # Set to True if the user is not anonymous
         'user_logged_in': not is_anonymous_user(request.user),
@@ -92,6 +93,7 @@ def view_listing(request, id):
     return render(request, "auctions/listing-details.html", response_context)
 
 
+# Make Purchase Transaction
 @login_required(login_url=settings.LOGIN_URL)
 def make_purchase(request, id):
     if request.method == "POST":
@@ -109,11 +111,10 @@ def make_purchase(request, id):
             # Store form data in session and redirect to the view_listing view
             request.session['data'] = form.data
 
-    return HttpResponseRedirect(reverse('view-listing', args=[id]))
+    return redirect('view-listing', id)
+
 
 # Place comment on Listing Details page
-
-
 @login_required(login_url=settings.LOGIN_URL)
 def comment(request, id):
     if request.method == "POST":
@@ -125,18 +126,17 @@ def comment(request, id):
                 id=id), comment=comment['comment'], date=date.today())
             new_comment.save()
 
-    return HttpResponseRedirect(reverse('view-listing', args=[id]))
+    return redirect('view-listing', id)
+
 
 # Adds Listing to Watchlist and returns to Listing Details Page
-
-
 @login_required(login_url=settings.LOGIN_URL)
 def add_to_watch_list(request, id):
     user = User.objects.get(username=request.user)
     item = Listing.objects.get(id=id)
     user.watchlist.add(item)
     user.save()
-    return HttpResponseRedirect(reverse('view-listing', args=[id]))
+    return redirect('view-listing', id)
 
 
 # Form Page to Create New Listing Item
@@ -153,8 +153,7 @@ def create_listing(request):
             images_formset.instance = listing
             images_formset.save()
             messages.success(request, "Listing Created Successfuly")
-            return HttpResponseRedirect(reverse('view-listing', args=[listing.id]))
-            # Redirect to success page or another view
+            return redirect('view-listing', listing.id)
     else:
         listing_form = ListingForm(user=request.user)
         images_formset = ListingAdditionalImagesFormSet(instance=Listing())
@@ -182,7 +181,7 @@ def edit_listing(request, id):
             images_formset.instance = listing
             images_formset.save()
             messages.success(request, "Listing Edited Successfuly")
-            return HttpResponseRedirect(reverse('view-listing', args=[listing.id]))
+            return redirect('view-listing', listing.id)
 
         else:
             print(images_formset.error_class)
@@ -194,6 +193,7 @@ def edit_listing(request, id):
     return render(request, 'auctions/listing-form.html', {'listing_form': listing_form, 'images_formset': images_formset, 'header': header, 'action': 'edit', 'id': id})
 
 
+# View all active listings on sale
 @login_required(login_url=settings.LOGIN_URL)
 def view_seller_dashboard(request):
     listings = Listing.objects.filter(listed_by=request.user, purchased=False, active=True).annotate(
@@ -209,24 +209,27 @@ def view_seller_dashboard(request):
     return render(request, 'auctions/seller-dashboard.html', {'total_listings': total_listings, 'expected_revenue': expected_revenue, 'listings': listings})
 
 
+# Close a listing
 @login_required(login_url=settings.LOGIN_URL)
 def close_listing(request, listing_id):
     listing = get_object_or_404(Listing, id=listing_id, listed_by=request.user)
     try:
         PurchaseServices.process_any_listing_close(listing)
         if listing.purchased:
-            messages.success("Congratulations your Listing has been sold!")
+            messages.success(
+                request, "Congratulations your Listing has been sold!")
             return HttpResponse("redirect to purchase history")
         else:
-            messages.info("Listing Closed Successfuly")
-            return HttpResponseRedirect(reverse("seller-dashboard"))
+            messages.info(request, "Listing Closed Successfuly")
+            return redirect("seller-dashboard")
     except Exception as e:
         logging.critical(e)
         messages.error(
             request, "There was an issue with the process. Please contact the service admistrator")
-        return HttpResponseRedirect(reverse("seller-dashboard"))
+        return redirect("seller-dashboard")
 
 
+# View all offers on any listing
 @login_required(login_url=settings.LOGIN_URL)
 def sellers_offers_list(request, listing_id):
     try:
@@ -241,7 +244,7 @@ def sellers_offers_list(request, listing_id):
         return render(request, "auctions/seller-offers-received.html", {'offers_forms': offers_forms, 'listing': listing})
 
     except ObjectDoesNotExist:
-        return HttpResponseRedirect(reverse("seller-dashboard"))
+        return redirect("seller-dashboard")
 
 
 @login_required(login_url=settings.LOGIN_URL)
@@ -255,11 +258,17 @@ def accept_offer(request, offer_id):
             request, f"Offer Accepted, Congratulations your Listing has been sold to {offer.buyer.username}")
         return HttpResponse("Redirect to purchase history")
 
+    except ValidationError as v:
+        print(v)
+        messages.error(
+            request, v)
+        return redirect("seller-dashboard")
+
     except Exception as e:
         print(e)
         messages.error(
             request, "There was an issue with the purchase. Please contact the service admistrator")
-        return HttpResponseRedirect(reverse("seller-offers-received", args=[offer.listing.id]))
+        return redirect("seller-offers-received", offer.listing.id)
 
 
 @login_required(login_url=settings.LOGIN_URL)
@@ -267,16 +276,55 @@ def reject_offer(request, offer_id):
     offer = get_object_or_404(
         Offer, id=offer_id, listing__listed_by=request.user)
 
-    offer_service_manager = OfferServices()
     try:
-        offer_service_manager.process_offer_reject(offer=offer)
+        OfferServices().process_offer_reject(offer=offer)
         messages.info(request, f"Offer Rejected.")
-        return HttpResponseRedirect(reverse("seller-offers-received", args=[offer.listing.id]))
+        return redirect("seller-offers-received", offer.listing.id)
 
     except:
         messages.error(
             request, "There was an issue with transaction. Please contact the service admistrator")
-        return HttpResponseRedirect(reverse("seller-offers-received", args=[offer.listing.id]))
+        return redirect("seller-offers-received", offer.listing.id)
+
+
+@login_required(login_url=settings.LOGIN_URL)
+def accept_counter_offer(request, counter_offer_id):
+    counter_offer = get_object_or_404(
+        CounterOffer, id=counter_offer_id, offer__buyer=request.user)
+
+    try:
+        OfferServices().process_offer_listing_sale(counter_offer=counter_offer)
+        messages.success(
+            request, f"Counter offer Accepted, Congratulations you've purchased the listing!")
+        return HttpResponse("Redirect to purchase history")
+
+    except ValidationError as v:
+        print(v)
+        messages.error(
+            request, v)
+        return redirect("buyer-dashboard")
+
+    except Exception as e:
+        print(e)
+        messages.error(
+            request, "There was an issue with the purchase. Please contact the service admistrator")
+        return redirect("buyer-dashboard")
+
+
+@login_required(login_url=settings.LOGIN_URL)
+def reject_counter_offer(request, counter_offer_id):
+    counter_offer = get_object_or_404(
+        CounterOffer, id=counter_offer_id, offer__buyer=request.user)
+
+    try:
+        OfferServices().process_offer_reject(counter_offer=counter_offer)
+        messages.info(request, f"Counter Offer Rejected.")
+        return redirect("buyer-dashboard")
+
+    except:
+        messages.error(
+            request, "There was an issue with transaction. Please contact the service admistrator")
+        return redirect("buyer-dashboard")
 
 
 @login_required(login_url=settings.LOGIN_URL)
@@ -294,7 +342,18 @@ def make_counter_offer(request, offer_id):
             messages.error(
                 request, "Couldn't be counter please try again after some time.")
 
-        return HttpResponseRedirect(reverse("seller-offers-received", args=[offer.listing.id]))
+        return redirect("seller-offers-received", offer.listing.id)
+
+
+@login_required(login_url=settings.LOGIN_URL)
+def view_buyer_dashboard(request):
+    offers = Offer.objects.filter(buyer=request.user, listing__active=True)
+    bids = Bid.objects.filter(buyer=request.user, listing__active=True)
+
+    return render(request, "auctions/buyer-dashboard.html", {
+        "offers": offers,
+        "bids": bids,
+    })
 
 
 @login_required(login_url=settings.LOGIN_URL)

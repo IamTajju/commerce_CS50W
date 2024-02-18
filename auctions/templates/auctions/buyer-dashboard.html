@@ -1,0 +1,152 @@
+{% extends "users/profile-layout.html" %}
+
+{% block child %}
+{% if bids and offers %}
+<h2 class="header-4 user-pages-header">Buyer Dashboard</h2>
+<h4 class="mt-5">Your Bids on Auctions</h4>
+<table class="table table-hover shadow-sm" id="ongoing-offers-table">
+    <thead class="align-top table-header">
+        <tr>
+            <th scope="col">#</th>
+            <th scope="col">Image</th>
+            <th scope="col">Title</th>
+            <th scope="col">Listed Price</th>
+            <th scope="col">Your Bid</th>
+            <th scope="col">Highest Bid</th>
+            <th scope="col">Update Bid</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% if bids %}
+        {% for bid in bids%}
+        <tr class="lead fs-6 align-middle">
+            <td>{{forloop.counter}}</td>
+            <td><img class="rounded" src="{{ bid.listing.hero_image.url }}" width="80px"></td>
+            <td><a href="{% url 'view-listing' bid.listing.id%}">{{ bid.listing.title }}</a></td>
+            <td>৳ {{ bid.listing.base_price }}</td>
+            <td>৳ {{ bid.amount }}</td>
+            <td class="me-5">
+                <span
+                    class="badge {% if bid.amount == bid.auction.highest_bid_amount %}badge-bg-success{% else %}badge-bg-danger{% endif %} fs-6">৳
+                    {{ bid.auction.highest_bid_amount}}</span>
+            </td>
+            <td class="me-5">
+                {% if bid.amount < bid.auction.highest_bid_amount %} <a class="btn btn-primary btn-sm small-custom mx-1"
+                    href="{% url 'view-listing-with-open-modal' bid.listing.id %}">
+                    <i class="bi bi-receipt-cutoff"></i>
+                    Outbid
+                    </a>
+                    {% else %}
+                    N/A
+                    {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+        {% else %}
+        <tr>
+            <td colspan="7">
+                {% load static %}
+                <center>
+                    <div class="mt-xl-5">
+                        <img class="img-fluid" src="{% static 'auctions/images/box.png'%}" style="max-height: 100px;">
+                        <h3 class="mt-5">No Bids placed</h3>
+                        <div class="d-flex justify-content-center flex-row align-items-center mt-3">
+                            <p class="lead me-2 fs-6 mb-0">Browse our Listings:</p>
+                            <a class="btn btn-secondary btn-sm small-custom" href="{% url 'index' %}"><i
+                                    class="bi bi-bag-plus-fill"></i>
+                                Browse</a>
+                        </div>
+                    </div>
+                </center>
+            </td>
+        </tr>
+        {% endif %}
+    </tbody>
+</table>
+
+<hr>
+
+<h4 class="mt-5">Your Offers on Listings</h4>
+<table class="table table-hover shadow-sm" id="counter-offer-table">
+    <thead class="align-top table-header">
+        <tr>
+            <th scope="col">#</th>
+            <th scope="col">Image</th>
+            <th scope="col">Title</th>
+            <th scope="col">Listed Price</th>
+            <th scope="col">Your Offer</th>
+            <th scope="col">Counter Offer</th>
+            <th scope="col">Accept Counter</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% if offers%}
+        {% for offer in offers%}
+        <tr class="lead fs-6 align-middle">
+            <td>{{forloop.counter}}</td>
+            <td><img src="{{ offer.listing.hero_image.url }}" width="80px"></td>
+            <td><a href="{% url 'view-listing' offer.listing.id %}" style="color: #2E2E2E">{{ offer.listing.title }}</a>
+            </td>
+            <td>৳ {{ offer.listing.base_price }}</td>
+            <td>৳ {{ offer.amount }}</td>
+            {% if offer.c %}
+            <td class="me-5">
+                <span class="badge badge-bg-success fs-6">৳ {{ offer.c.counter_offer_amount}}</span>
+            </td>
+            {% else %}
+            <td><span class="badge badge-bg-danger fs-6">Pending</span></td>
+            {% endif %}
+            <td class="me-5">
+                {% if offer.c %}
+                <div class="d-flex ">
+                    <a class="btn btn-success btn-sm small-custom mx-1 counter-offer-btn"
+                        onClick="confirmCounterOffer('{% url 'accept-counter-offer' offer.c.id %}')"><i
+                            class="bi bi-check-lg"></i></a>
+                    <a class="btn btn-danger btn-sm small-custom mx-1 counter-offer-btn"
+                        onClick="rejectCounterOffer('{% url 'reject-counter-offer' offer.c.id %}')"><i
+                            class="bi bi-x-lg"></i></a>
+                </div>
+                {% else %}
+                <div>
+                    <p class="text-muted">N/A</p>
+                </div>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+        {% else %}
+        <tr>
+            <td colspan="7">
+                {% load static %}
+                <center>
+                    <div class="mt-xl-5">
+                        <img class="img-fluid" src="{% static 'auctions/images/box.png'%}" style="max-height: 100px;">
+                        <h3 class="mt-5">No offers made.</h3>
+                        <div class="d-flex justify-content-center flex-row align-items-center mt-3">
+                            <p class="lead me-2 fs-6 mb-0">Browse our Listings:</p>
+                            <a class="btn btn-secondary btn-sm small-custom" href="{% url 'index' %}"><i
+                                    class="bi bi-bag-plus-fill"></i>
+                                Browse</a>
+                        </div>
+                    </div>
+                </center>
+            </td>
+        </tr>
+        {% endif %}
+    </tbody>
+</table>
+{% else %}
+{% load static %}
+<center>
+    <div class="mt-xl-5">
+        <img class="img-fluid" src="{% static 'auctions/images/box.png'%}">
+        <h3 class="mt-5">No offers/bids made.</h3>
+        <div class="d-flex justify-content-center flex-row align-items-center mt-3">
+            <p class="lead me-2 fs-6 mb-0">Browse our Listings:</p>
+            <a class="btn btn-success btn-sm small-custom" href="{% url 'index' %}"><i class="bi bi-bag-plus-fill"></i>
+                Browse</a>
+        </div>
+    </div>
+</center>
+{% endif %}
+{% endblock child %}

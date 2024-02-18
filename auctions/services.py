@@ -105,7 +105,17 @@ class OfferServices(PurchaseServices):
         offer.offer_status = Offer.OfferStatus.COUNTER
         offer.save()
 
+    @classmethod
+    def process_counter_offer_reject(cls, counter_offer):
+        with transaction.atomic():
+            counter_offer.counter_offer_status = CounterOffer.CounterOfferStatus.REJECTED
+            counter_offer.save()
+            offer = counter_offer.offer
+            offer.status = Offer.OfferStatus.COUNTER_REJECTED
+            offer.save()
+
     # Auxilary Methods
+
     @staticmethod  # ALWAYS CALL WITHIN AN ATOMIC TRANSACTION
     def close_all_losing_offers(winning_offer=None, listing=None):
 

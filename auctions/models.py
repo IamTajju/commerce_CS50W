@@ -3,9 +3,8 @@ from django.utils.translation import gettext_lazy as _
 from users.models import User, Address, PaymentMethod
 from django.db.models import Max, F, IntegerField, Q
 from django.db.models.functions import Coalesce
-from django.core.exceptions import ValidationError
-import logging
 from django.utils.translation import gettext_lazy as _
+from django.core.exceptions import ValidationError
 
 
 class EnumBase(models.Model):
@@ -97,6 +96,9 @@ class Listing(models.Model):
         # Return 0 if there are no listings
         return highest_price['price__max'] or 0
 
+    class Meta:
+        ordering = ['-timestamp']
+
 
 class ListingAdditionalImages(models.Model):
     listing = models.ForeignKey(
@@ -139,6 +141,7 @@ class PurchaseTransaction(models.Model):
 
     class Meta:
         abstract = True
+        ordering = ['-timestamp']
 
 
 class Bid(PurchaseTransaction):
@@ -164,6 +167,19 @@ class Offer(PurchaseTransaction):
     offer_status = models.CharField(
         max_length=2, choices=OfferStatus.choices, default=OfferStatus.PENDING)
 
+    def save(self, *args, **kwargs):
+        if self.offer_status == self.OfferStatus.ACCEPTED:
+            # Check if there are already accepted offers for the same listing
+            accepted_offers = Offer.objects.filter(
+                listing=self.listing,
+                offer_status=self.OfferStatus.ACCEPTED
+            ).exclude(id=self.id)  # Exclude current instance if it's being updated
+
+            if accepted_offers.exists():
+                raise ValidationError("Item already Purchased.")
+
+        super().save(*args, **kwargs)
+
 
 class CounterOffer(models.Model):
     class CounterOfferStatus(models.TextChoices):
@@ -177,6 +193,19 @@ class CounterOffer(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
     counter_offer_status = models.CharField(
         max_length=2, choices=CounterOfferStatus.choices, default=CounterOfferStatus.PENDING)
+
+    def save(self, *args, **kwargs):
+        if self.counter_offer_status == self.CounterOfferStatus.ACCEPTED:
+            # Check if there are already accepted counter offers for the same listing
+            accepted_counter_offers = CounterOffer.objects.filter(
+                offer__listing=self.offer.listing,
+                counter_offer_status=self.CounterOfferStatus.ACCEPTED
+            ).exclude(id=self.id)  # Exclude current instance if it's being updated
+
+            if accepted_counter_offers.exists():
+                raise ValidationError("Item already purchased.")
+
+        super().save(*args, **kwargs)
 
 
 class BuyItNow(PurchaseTransaction):
@@ -194,3 +223,6 @@ class Comment(models.Model):
 
     def __str__(self):
         return f"By: {self.user} | On: {self.listing}"
+
+    class Meta:
+        ordering = ['-date']
